@@ -13,14 +13,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 require_once __DIR__ . '/config/database.php';
 
-// Parsear la ruta: /api/profesores, /api/grupos, etc.
-$uri    = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-$uri    = rtrim($uri, '/');
-$parts  = explode('/', trim($uri, '/'));
+// Parsear la ruta correctamente
+$uri     = urldecode(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH));
+$base    = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/';
+$uri     = substr($uri, strlen($base));
+$uri     = trim($uri, '/');
+$parts   = $uri !== '' ? explode('/', $uri) : [];
 
-// Estructura esperada: /api/{recurso}/{id?}
-$recurso = $parts[1] ?? '';
-$id      = isset($parts[2]) && is_numeric($parts[2]) ? (int)$parts[2] : null;
+// Estructura esperada: {recurso}/{id?}
+$recurso = $parts[0] ?? '';
+$id      = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : null;
+
 $method  = $_SERVER['REQUEST_METHOD'];
 
 $controllerMap = [

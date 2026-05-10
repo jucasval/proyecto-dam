@@ -1,0 +1,11 @@
+# api/.htaccess
+# Redirige todas las peticiones a index.php manteniendo la ruta original
+
+RewriteEngine On
+
+# Permitir acceso a archivos reales (no redirigir)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# Todo lo demás va a index.php
+RewriteRule ^ index.php [QSA,L]

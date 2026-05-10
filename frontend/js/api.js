@@ -1,6 +1,6 @@
 // js/api.js — Funciones genéricas para consumir la API REST
 
-const API_BASE = '/api';  // Ajusta si tu servidor tiene otra ruta base
+const API_BASE = '/Proyecto DAM/proyecto/api';  // Ruta real en el servidor Apache
 
 const api = {
 

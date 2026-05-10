@@ -3,11 +3,12 @@
 
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'asignacion_horas');
-define('DB_USER', 'root');       // Cambia por tu usuario
-define('DB_PASS', '');           // Cambia por tu contraseña
+define('DB_USER', 'jjuanf1');       // Cambia por tu usuario
+define('DB_PASS', 'elo02030');           // Cambia por tu contraseña
 define('DB_CHARSET', 'utf8mb4');
 
-function getConnection(): PDO {
+function getConnection(): PDO
+{
     static $pdo = null;
     if ($pdo === null) {
         $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=" . DB_CHARSET;

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Asignaciones — Dpto. Informática</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <span class="logo-icon">◈</span>
+        <div>
+          <div class="logo-title">Dpto. Informática</div>
+          <div class="logo-sub">Curso 2025–2026</div>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Gestión</div>
+      <a href="../index.html"     class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
+      <a href="profesores.html"   class="nav-item"><span class="nav-icon">◎</span> Profesores</a>
+      <a href="grupos.html"       class="nav-item"><span class="nav-icon">◧</span> Grupos</a>
+      <a href="modulos.html"      class="nav-item"><span class="nav-icon">◫</span> Módulos</a>
+      <a href="asignaciones.html" class="nav-item active"><span class="nav-icon">◈</span> Asignaciones</a>
+    </nav>
+    <div class="sidebar-footer"><div class="sidebar-footer-text">TFC — DAM 2025</div></div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">Asignaciones</h1>
+        <span class="page-sub">Asignación de módulos a profesores por grupo</span>
+      </div>
+    </header>
+
+    <div class="content-area">
+      <div id="alert-box" class="alert"></div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="toolbar">
+            <input type="text" id="buscador" class="search-input" placeholder="Buscar profesor o módulo...">
+            <select id="filtro-grupo" class="search-input" style="width:180px">
+              <option value="">Todos los grupos</option>
+            </select>
+            <select id="filtro-ciclo" class="search-input" style="width:140px">
+              <option value="">Todos los ciclos</option>
+              <option value="DAM">DAM</option>
+              <option value="DAW">DAW</option>
+              <option value="ASIR">ASIR</option>
+              <option value="SMR">SMR</option>
+              <option value="FPB">FPB</option>
+              <option value="ESO">ESO</option>
+              <option value="BTO">BTO</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="abrirModalNuevo()">+ Nueva asignación</button>
+        </div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Profesor</th>
+                <th>Puesto</th>
+                <th>Módulo</th>
+                <th>Grupo</th>
+                <th>Horas</th>
+                <th>Tipo</th>
+                <th>Desdoble</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-asignaciones">
+              <tr><td colspan="8" class="table-loading">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card-footer" id="card-footer" style="padding:12px 20px;border-top:1px solid var(--border);font-size:13px;color:var(--text-secondary)">
+          Total: <strong id="total-count">0</strong> asignaciones
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal crear/editar -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title" id="modal-titulo">Nueva asignación</span>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="asig-id">
+
+        <div class="form-grid">
+          <div class="form-group full">
+            <label for="asig-profesor">Profesor/a</label>
+            <select id="asig-profesor" onchange="actualizarTipoCuerpo()">
+              <option value="">— Selecciona un profesor —</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label for="asig-modulo">Módulo</label>
+            <select id="asig-modulo">
+              <option value="">— Selecciona un módulo —</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label for="asig-grupo">Grupo</label>
+            <select id="asig-grupo">
+              <option value="">— Selecciona un grupo —</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="asig-horas">Horas semanales</label>
+            <input type="number" id="asig-horas" value="1" min="0.5" max="20" step="0.5">
+          </div>
+          <div class="form-group">
+            <label for="asig-tipo">Tipo de cuerpo</label>
+            <select id="asig-tipo">
+              <option value="PES">PES</option>
+              <option value="PTFP">PTFP</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="asig-desdoble">¿Es desdoble?</label>
+            <select id="asig-desdoble">
+              <option value="0">No</option>
+              <option value="1">Sí</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label for="asig-obs">Observaciones</label>
+            <input type="text" id="asig-obs" placeholder="Ej: Comparte módulo con otro profesor">
+          </div>
+        </div>
+
+        <!-- Aviso de horas del profesor seleccionado -->
+        <div id="aviso-horas" style="margin-top:14px;padding:10px 12px;border-radius:6px;font-size:13px;display:none;background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-primary"   onclick="guardarAsignacion()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/asignaciones.js"></script>
+</body>
+</html>
