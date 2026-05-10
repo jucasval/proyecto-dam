@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Módulos — Dpto. Informática</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <span class="logo-icon">◈</span>
+        <div>
+          <div class="logo-title">Dpto. Informática</div>
+          <div class="logo-sub">Curso 2025–2026</div>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Gestión</div>
+      <a href="../index.html"     class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
+      <a href="profesores.html"   class="nav-item"><span class="nav-icon">◎</span> Profesores</a>
+      <a href="grupos.html"       class="nav-item"><span class="nav-icon">◧</span> Grupos</a>
+      <a href="modulos.html"      class="nav-item active"><span class="nav-icon">◫</span> Módulos</a>
+      <a href="asignaciones.html" class="nav-item"><span class="nav-icon">◈</span> Asignaciones</a>
+    </nav>
+    <div class="sidebar-footer"><div class="sidebar-footer-text">TFC — DAM 2025</div></div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">Módulos</h1>
+        <span class="page-sub">Catálogo de módulos formativos</span>
+      </div>
+    </header>
+
+    <div class="content-area">
+      <div id="alert-box" class="alert"></div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="toolbar">
+            <input type="text" id="buscador" class="search-input" placeholder="Buscar módulo o código...">
+          </div>
+          <button class="btn btn-primary" onclick="abrirModalNuevo()">+ Nuevo módulo</button>
+        </div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Nombre del módulo</th>
+                <th>Código</th>
+                <th>Horas PES</th>
+                <th>Horas PTFP</th>
+                <th>Total horas</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-modulos">
+              <tr><td colspan="6" class="table-loading">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title" id="modal-titulo">Nuevo módulo</span>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="mod-id">
+        <div class="form-grid">
+          <div class="form-group full">
+            <label for="mod-nombre">Nombre del módulo</label>
+            <input type="text" id="mod-nombre" placeholder="Ej: Bases de datos">
+          </div>
+          <div class="form-group">
+            <label for="mod-codigo">Código</label>
+            <input type="text" id="mod-codigo" placeholder="Ej: BD" style="font-family:var(--font-mono)">
+          </div>
+          <div class="form-group"></div>
+          <div class="form-group">
+            <label for="mod-horas-pes">Horas PES</label>
+            <input type="number" id="mod-horas-pes" value="0" min="0" max="30">
+          </div>
+          <div class="form-group">
+            <label for="mod-horas-ptfp">Horas PTFP</label>
+            <input type="number" id="mod-horas-ptfp" value="0" min="0" max="30">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-primary"   onclick="guardarModulo()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/modulos.js"></script>
+</body>
+</html>
