@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Horas — Dpto. Informática</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <span class="logo-icon">◈</span>
+        <div>
+          <div class="logo-title">Dpto. Informática</div>
+          <div class="logo-sub">Curso 2025–2026</div>
+        </div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Gestión</div>
+      <a href="index.html" class="nav-item active" data-page="dashboard">
+        <span class="nav-icon">⊞</span> Dashboard
+      </a>
+      <a href="pages/profesores.html" class="nav-item" data-page="profesores">
+        <span class="nav-icon">◎</span> Profesores
+      </a>
+      <a href="pages/grupos.html" class="nav-item" data-page="grupos">
+        <span class="nav-icon">◧</span> Grupos
+      </a>
+      <a href="pages/modulos.html" class="nav-item" data-page="modulos">
+        <span class="nav-icon">◫</span> Módulos
+      </a>
+      <a href="pages/asignaciones.html" class="nav-item" data-page="asignaciones">
+        <span class="nav-icon">◈</span> Asignaciones
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-footer-text">TFC — DAM 2025</div>
+    </div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">Dashboard</h1>
+        <span class="page-sub">Resumen del departamento</span>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-badge">
+          <span class="badge-dot"></span>
+          Curso activo
+        </div>
+      </div>
+    </header>
+
+    <div class="content-area">
+
+      <!-- Tarjetas resumen -->
+      <div class="stats-grid">
+        <div class="stat-card" id="card-profesores">
+          <div class="stat-label">Profesores</div>
+          <div class="stat-value" id="stat-profesores">—</div>
+          <div class="stat-hint">PES + PTFP</div>
+        </div>
+        <div class="stat-card" id="card-grupos">
+          <div class="stat-label">Grupos</div>
+          <div class="stat-value" id="stat-grupos">—</div>
+          <div class="stat-hint">Todos los ciclos</div>
+        </div>
+        <div class="stat-card" id="card-modulos">
+          <div class="stat-label">Módulos</div>
+          <div class="stat-value" id="stat-modulos">—</div>
+          <div class="stat-hint">Distintos módulos</div>
+        </div>
+        <div class="stat-card stat-card--accent" id="card-asignaciones">
+          <div class="stat-label">Asignaciones</div>
+          <div class="stat-value" id="stat-asignaciones">—</div>
+          <div class="stat-hint">Total registradas</div>
+        </div>
+      </div>
+
+      <!-- Tabla rápida de horas por profesor -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Horas por profesor</span>
+          <a href="pages/profesores.html" class="card-link">Ver todos →</a>
+        </div>
+        <div class="table-wrap">
+          <table class="table" id="tabla-horas">
+            <thead>
+              <tr>
+                <th>Profesor</th>
+                <th>Puesto</th>
+                <th>Contrato</th>
+                <th>Asignadas</th>
+                <th>Libres</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-horas">
+              <tr><td colspan="5" class="table-loading">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="js/api.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>
