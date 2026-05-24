@@ -1,11 +1,9 @@
 <?php
 // api/controllers/ProfesorController.php
-// Los profesores son históricos: cada uno pertenece a un curso_escolar
 
 class ProfesorController {
     public function __construct(private PDO $db) {}
 
-    // Obtiene el id del curso activo
     private function cursoActivoId(): int {
         $stmt = $this->db->query("SELECT id FROM curso_escolar WHERE activo = 1 LIMIT 1");
         $row  = $stmt->fetch();
@@ -18,6 +16,16 @@ class ProfesorController {
         $cursoId = $this->cursoActivoId();
         $stmt    = $this->db->prepare(
             "SELECT * FROM profesor WHERE curso_id = ? ORDER BY apellidos, nombre"
+        );
+        $stmt->execute([$cursoId]);
+        echo json_encode($stmt->fetchAll());
+    }
+
+    // GET /profesores/horas — horas detalladas desde la vista (módulos + cargos)
+    public function horas(): void {
+        $cursoId = $this->cursoActivoId();
+        $stmt    = $this->db->prepare(
+            "SELECT * FROM v_horas_por_profesor WHERE curso_id = ?"
         );
         $stmt->execute([$cursoId]);
         echo json_encode($stmt->fetchAll());

@@ -44,6 +44,15 @@ $controllerClass = $controllerMap[$recurso];
 require_once __DIR__ . "/controllers/{$controllerClass}.php";
 $controller = new $controllerClass(getConnection());
 
+// Rutas especiales para profesores
+if ($recurso === 'profesores') {
+    $segmento = $parts[1] ?? null;
+    if ($method === 'GET' && $segmento === 'horas') {
+        $controller->horas();
+        exit;
+    }
+}
+
 // Rutas especiales para cursos
 if ($recurso === 'cursos') {
     $segmento = $parts[1] ?? null;

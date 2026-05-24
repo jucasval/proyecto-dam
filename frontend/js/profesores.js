@@ -1,45 +1,53 @@
 // js/profesores.js
 
 let todosProfesores = [];
-let todasAsignaciones = [];
+let horasDetalle    = [];
 
 async function cargarProfesores() {
   try {
-    [todosProfesores, todasAsignaciones] = await Promise.all([
+    [todosProfesores, horasDetalle] = await Promise.all([
       api.get('profesores'),
-      api.get('asignaciones'),
+      api.get('profesores/horas'),
     ]);
     renderTabla(todosProfesores);
   } catch (err) {
     document.getElementById('tbody-profesores').innerHTML =
-      '<tr><td colspan="6" class="table-loading">Error al cargar datos</td></tr>';
+      '<tr><td colspan="7" class="table-loading">Error al cargar datos</td></tr>';
   }
 }
 
-function horasAsignadasDe(profesorId) {
-  return todasAsignaciones
-    .filter(a => a.profesor_id == profesorId)
-    .reduce((sum, a) => sum + parseFloat(a.horas), 0);
+function getHoras(profesorId) {
+  return horasDetalle.find(h => h.id == profesorId) || {
+    horas_contrato: 18, horas_modulos: 0, horas_cargos: 0,
+    horas_asignadas: 0, horas_libres: 18
+  };
 }
 
 function renderTabla(lista) {
   const tbody = document.getElementById('tbody-profesores');
   if (!lista.length) {
-    tbody.innerHTML = '<tr><td colspan="6" class="table-loading">Sin resultados</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="table-loading">Sin resultados</td></tr>';
     return;
   }
   tbody.innerHTML = lista
     .sort((a, b) => a.apellidos.localeCompare(b.apellidos))
     .map(p => {
-      const asig  = horasAsignadasDe(p.id);
-      const libre = p.horas_totales - asig;
+      const h     = getHoras(p.id);
+      const libre = h.horas_libres;
       return `
         <tr>
           <td><strong>${p.apellidos}</strong>, ${p.nombre}</td>
           <td>${badgePuesto(p.puesto)}</td>
-          <td>${p.horas_totales}</td>
-          <td>${horasBar(asig, p.horas_totales)}</td>
-          <td style="color:${libre < 0 ? '#ef4444' : libre === 0 ? '#22c55e' : 'inherit'};font-weight:500">${libre}</td>
+          <td>${h.horas_contrato}</td>
+          <td>
+            ${horasBar(h.horas_asignadas, h.horas_contrato)}
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px">
+              Módulos: ${h.horas_modulos}h · Cargos: ${h.horas_cargos}h
+            </div>
+          </td>
+          <td style="color:${libre < 0 ? '#ef4444' : libre === 0 ? '#22c55e' : 'inherit'};font-weight:600">
+            ${libre}h
+          </td>
           <td>
             <button class="btn btn-secondary btn-sm" onclick="abrirModalEditar(${p.id})">Editar</button>
             <button class="btn btn-danger btn-sm"    onclick="eliminarProfesor(${p.id})">Eliminar</button>
@@ -59,11 +67,11 @@ document.getElementById('buscador').addEventListener('input', function () {
 
 function abrirModalNuevo() {
   document.getElementById('modal-titulo').textContent = 'Nuevo profesor';
-  document.getElementById('prof-id').value       = '';
-  document.getElementById('prof-nombre').value   = '';
+  document.getElementById('prof-id').value        = '';
+  document.getElementById('prof-nombre').value    = '';
   document.getElementById('prof-apellidos').value = '';
-  document.getElementById('prof-puesto').value   = 'PES';
-  document.getElementById('prof-horas').value    = 18;
+  document.getElementById('prof-puesto').value    = 'PES';
+  document.getElementById('prof-horas').value     = 18;
   openModal();
 }
 
@@ -71,16 +79,16 @@ function abrirModalEditar(id) {
   const p = todosProfesores.find(x => x.id == id);
   if (!p) return;
   document.getElementById('modal-titulo').textContent = 'Editar profesor';
-  document.getElementById('prof-id').value       = p.id;
-  document.getElementById('prof-nombre').value   = p.nombre;
+  document.getElementById('prof-id').value        = p.id;
+  document.getElementById('prof-nombre').value    = p.nombre;
   document.getElementById('prof-apellidos').value = p.apellidos;
-  document.getElementById('prof-puesto').value   = p.puesto;
-  document.getElementById('prof-horas').value    = p.horas_totales;
+  document.getElementById('prof-puesto').value    = p.puesto;
+  document.getElementById('prof-horas').value     = p.horas_totales;
   openModal();
 }
 
 async function guardarProfesor() {
-  const id = document.getElementById('prof-id').value;
+  const id   = document.getElementById('prof-id').value;
   const data = {
     nombre:        document.getElementById('prof-nombre').value.trim(),
     apellidos:     document.getElementById('prof-apellidos').value.trim(),

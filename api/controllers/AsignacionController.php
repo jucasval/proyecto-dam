@@ -1,6 +1,5 @@
 <?php
 // api/controllers/AsignacionController.php
-// tipo_cuerpo se hereda de profesor, no se gestiona en asignacion
 
 class AsignacionController {
     public function __construct(private PDO $db) {}
@@ -12,53 +11,32 @@ class AsignacionController {
         return (int)$row['id'];
     }
 
+    // GET /asignaciones — usa la vista v_asignaciones_completas
     public function index(): void {
         $cursoId = $this->cursoActivoId();
-        $stmt = $this->db->prepare(
-            "SELECT a.id,
-                    CONCAT(p.apellidos, ', ', p.nombre) AS profesor,
-                    p.puesto,
-                    m.nombre  AS modulo,
-                    m.codigo,
-                    g.nombre  AS grupo,
-                    g.ciclo,
-                    a.horas,
-                    a.es_desdoble,
-                    a.observaciones,
-                    a.profesor_id,
-                    a.modulo_id,
-                    a.grupo_id,
-                    a.curso_id
-             FROM asignacion a
-             JOIN profesor p ON a.profesor_id = p.id
-             JOIN modulo   m ON a.modulo_id   = m.id
-             JOIN grupo    g ON a.grupo_id    = g.id
-             WHERE a.curso_id = ?
-             ORDER BY g.ciclo, g.curso, g.nombre, m.nombre"
+        $stmt    = $this->db->prepare(
+            "SELECT * FROM v_asignaciones_completas WHERE curso_id = ?"
         );
         $stmt->execute([$cursoId]);
         echo json_encode($stmt->fetchAll());
     }
 
+    // GET /asignaciones/{id}
     public function show(int $id): void {
         $stmt = $this->db->prepare(
-            "SELECT a.*,
-                    CONCAT(p.apellidos, ', ', p.nombre) AS profesor_nombre,
-                    p.puesto,
-                    m.nombre AS modulo_nombre,
-                    g.nombre AS grupo_nombre
-             FROM asignacion a
-             JOIN profesor p ON a.profesor_id = p.id
-             JOIN modulo   m ON a.modulo_id   = m.id
-             JOIN grupo    g ON a.grupo_id    = g.id
-             WHERE a.id = ?"
+            "SELECT * FROM v_asignaciones_completas WHERE id = ?"
         );
         $stmt->execute([$id]);
         $row = $stmt->fetch();
-        if (!$row) { http_response_code(404); echo json_encode(['error' => 'Asignación no encontrada']); return; }
+        if (!$row) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Asignación no encontrada']);
+            return;
+        }
         echo json_encode($row);
     }
 
+    // POST /asignaciones
     public function store(array $data): void {
         foreach (['profesor_id', 'modulo_id', 'grupo_id', 'horas'] as $f) {
             if (!isset($data[$f]) || $data[$f] === '') {
@@ -68,7 +46,7 @@ class AsignacionController {
             }
         }
         $cursoId = $this->cursoActivoId();
-        $stmt = $this->db->prepare(
+        $stmt    = $this->db->prepare(
             "INSERT INTO asignacion (curso_id, profesor_id, modulo_id, grupo_id, horas, es_desdoble, observaciones)
              VALUES (:curso_id, :profesor_id, :modulo_id, :grupo_id, :horas, :es_desdoble, :observaciones)"
         );
@@ -85,6 +63,7 @@ class AsignacionController {
         echo json_encode(['id' => $this->db->lastInsertId(), 'mensaje' => 'Asignación creada']);
     }
 
+    // PUT /asignaciones/{id}
     public function update(int $id, array $data): void {
         $stmt = $this->db->prepare(
             "UPDATE asignacion
@@ -104,6 +83,7 @@ class AsignacionController {
         echo json_encode(['mensaje' => 'Asignación actualizada']);
     }
 
+    // DELETE /asignaciones/{id}
     public function destroy(int $id): void {
         $stmt = $this->db->prepare("DELETE FROM asignacion WHERE id = ?");
         $stmt->execute([$id]);

@@ -14,33 +14,27 @@ async function cargarDashboard() {
     document.getElementById('stat-modulos').textContent      = modulos.length;
     document.getElementById('stat-asignaciones').textContent = asignaciones.length;
 
-    // Calcular horas por profesor
-    const horasMap = {};
-    asignaciones.forEach(a => {
-      if (!horasMap[a.profesor_id]) {
-        horasMap[a.profesor_id] = { nombre: a.profesor, puesto: a.puesto, asignadas: 0 };
-      }
-      horasMap[a.profesor_id].asignadas += parseFloat(a.horas);
-    });
-
-    const horasPorContrato = {};
-    profesores.forEach(p => {
-      horasPorContrato[p.id] = { contrato: p.horas_totales, puesto: p.puesto, nombre: `${p.apellidos}, ${p.nombre}` };
-    });
+    // Cargar horas completas desde la vista (módulos + cargos)
+    const horasDetalle = await api.get('profesores/horas');
 
     const tbody = document.getElementById('tbody-horas');
-    tbody.innerHTML = profesores
-      .sort((a, b) => a.apellidos.localeCompare(b.apellidos))
+    tbody.innerHTML = horasDetalle
       .map(p => {
-        const asig = horasMap[p.id]?.asignadas ?? 0;
-        const libre = p.horas_totales - asig;
+        const libre = p.horas_libres;
         return `
           <tr>
-            <td>${p.apellidos}, ${p.nombre}</td>
+            <td><strong>${p.profesor}</strong></td>
             <td>${badgePuesto(p.puesto)}</td>
-            <td>${p.horas_totales}</td>
-            <td>${horasBar(asig, p.horas_totales)}</td>
-            <td style="color:${libre < 0 ? '#ef4444' : libre === 0 ? '#22c55e' : 'inherit'};font-weight:500">${libre}</td>
+            <td>${p.horas_contrato}</td>
+            <td>
+              ${horasBar(p.horas_asignadas, p.horas_contrato)}
+              <div style="font-size:11px;color:var(--text-muted);margin-top:2px">
+                Módulos: ${p.horas_modulos}h · Cargos: ${p.horas_cargos}h
+              </div>
+            </td>
+            <td style="color:${libre < 0 ? '#ef4444' : libre === 0 ? '#22c55e' : 'inherit'};font-weight:500">
+              ${libre}h
+            </td>
           </tr>`;
       })
       .join('');
