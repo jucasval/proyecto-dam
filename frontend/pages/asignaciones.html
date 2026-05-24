@@ -16,7 +16,7 @@
         <span class="logo-icon">◈</span>
         <div>
           <div class="logo-title">Dpto. Informática</div>
-          <div class="logo-sub">Curso 2025–2026</div>
+          <div class="logo-sub" id="curso-activo-label">Cargando...</div>
         </div>
       </div>
     </div>
@@ -27,6 +27,8 @@
       <a href="grupos.html"       class="nav-item"><span class="nav-icon">◧</span> Grupos</a>
       <a href="modulos.html"      class="nav-item"><span class="nav-icon">◫</span> Módulos</a>
       <a href="asignaciones.html" class="nav-item active"><span class="nav-icon">◈</span> Asignaciones</a>
+      <div class="nav-section-label" style="margin-top:12px">Administración</div>
+      <a href="cursos.html"       class="nav-item"><span class="nav-icon">◷</span> Cursos</a>
     </nav>
     <div class="sidebar-footer"><div class="sidebar-footer-text">TFC — DAM 2025</div></div>
   </aside>
@@ -76,11 +78,11 @@
               </tr>
             </thead>
             <tbody id="tbody-asignaciones">
-              <tr><td colspan="8" class="table-loading">Cargando...</td></tr>
+              <tr><td colspan="7" class="table-loading">Cargando...</td></tr>
             </tbody>
           </table>
         </div>
-        <div class="card-footer" id="card-footer" style="padding:12px 20px;border-top:1px solid var(--border);font-size:13px;color:var(--text-secondary)">
+        <div style="padding:12px 20px;border-top:1px solid var(--border);font-size:13px;color:var(--text-secondary)">
           Total: <strong id="total-count">0</strong> asignaciones
         </div>
       </div>
@@ -98,27 +100,36 @@
         <input type="hidden" id="asig-id">
 
         <div class="form-grid">
+
+          <!-- PASO 1: Grupo -->
           <div class="form-group full">
-            <label for="asig-profesor">Profesor/a</label>
-            <select id="asig-profesor" onchange="actualizarTipoCuerpo()">
-              <option value="">— Selecciona un profesor —</option>
-            </select>
-          </div>
-          <div class="form-group full">
-            <label for="asig-modulo">Módulo</label>
-            <select id="asig-modulo">
-              <option value="">— Selecciona un módulo —</option>
-            </select>
-          </div>
-          <div class="form-group full">
-            <label for="asig-grupo">Grupo</label>
-            <select id="asig-grupo">
+            <label for="asig-grupo">1. Selecciona el grupo</label>
+            <select id="asig-grupo" onchange="onGrupoChange()">
               <option value="">— Selecciona un grupo —</option>
             </select>
           </div>
+
+          <!-- PASO 2: Módulo (se carga al elegir grupo) -->
+          <div class="form-group full">
+            <label for="asig-modulo">2. Selecciona el módulo</label>
+            <select id="asig-modulo" onchange="onModuloChange()" disabled>
+              <option value="">— Primero elige un grupo —</option>
+            </select>
+          </div>
+
+          <!-- PASO 3: Profesor (se carga al elegir módulo) -->
+          <div class="form-group full">
+            <label for="asig-profesor">3. Selecciona el profesor</label>
+            <select id="asig-profesor" onchange="onProfesorChange()" disabled>
+              <option value="">— Primero elige un módulo —</option>
+            </select>
+          </div>
+
+          <!-- Horas: se autocompletan según puesto del profesor -->
           <div class="form-group">
             <label for="asig-horas">Horas semanales</label>
-            <input type="number" id="asig-horas" value="1" min="0.5" max="20" step="0.5">
+            <input type="number" id="asig-horas" value="0" min="0" max="20" step="0.5" readonly
+              style="background:#f8fafc;color:var(--text-secondary)">
           </div>
           <div class="form-group">
             <label for="asig-desdoble">¿Es desdoble?</label>
@@ -127,14 +138,15 @@
               <option value="1">Sí</option>
             </select>
           </div>
+
           <div class="form-group full">
             <label for="asig-obs">Observaciones</label>
-            <input type="text" id="asig-obs" placeholder="Ej: Comparte módulo con otro profesor">
+            <input type="text" id="asig-obs" placeholder="Opcional">
           </div>
         </div>
 
-        <!-- Aviso de horas del profesor seleccionado -->
-        <div id="aviso-horas" style="margin-top:14px;padding:10px 12px;border-radius:6px;font-size:13px;display:none;background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8"></div>
+        <!-- Info del profesor seleccionado -->
+        <div id="aviso-horas" style="margin-top:14px;padding:10px 12px;border-radius:6px;font-size:13px;display:none"></div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
@@ -145,5 +157,11 @@
 
   <script src="../js/api.js"></script>
   <script src="../js/asignaciones.js"></script>
+  <script>
+    api.get('cursos/activo').then(c => {
+      const el = document.getElementById('curso-activo-label');
+      if (el) el.textContent = c.nombre;
+    }).catch(() => {});
+  </script>
 </body>
 </html>

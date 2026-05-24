@@ -62,6 +62,15 @@ if ($recurso === 'cursos') {
     }
 }
 
+// Rutas especiales para grupos
+if ($recurso === 'grupos') {
+    $accion = $parts[2] ?? null;
+    if ($method === 'GET' && $id && $accion === 'modulos') {
+        $controller->modulos($id);
+        exit;
+    }
+}
+
 switch ($method) {
     case 'GET':
         $id ? $controller->show($id) : $controller->index();

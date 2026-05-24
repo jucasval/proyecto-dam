@@ -1,46 +1,33 @@
 // js/asignaciones.js
+// Flujo: grupo → módulo → profesor → horas automáticas
 
 let todasAsignaciones = [];
 let todosProfesores   = [];
-let todosModulos      = [];
 let todosGrupos       = [];
+let todosModulos      = [];
 
 async function cargarDatos() {
   try {
-    [todasAsignaciones, todosProfesores, todosModulos, todosGrupos] = await Promise.all([
+    [todasAsignaciones, todosProfesores, todosGrupos, todosModulos] = await Promise.all([
       api.get('asignaciones'),
       api.get('profesores'),
-      api.get('modulos'),
       api.get('grupos'),
+      api.get('modulos'),
     ]);
-    poblarSelectores();
     poblarFiltroGrupos();
+    poblarSelectGrupos();
     renderTabla(todasAsignaciones);
   } catch (err) {
     document.getElementById('tbody-asignaciones').innerHTML =
-      '<tr><td colspan="8" class="table-loading">Error al cargar datos</td></tr>';
+      '<tr><td colspan="7" class="table-loading">Error al cargar datos</td></tr>';
   }
 }
 
-// ---- Selectores del modal --------------------------------
+// ---- Selectores ----------------------------------------
 
-function poblarSelectores() {
-  const selProf = document.getElementById('asig-profesor');
-  selProf.innerHTML = '<option value="">— Selecciona un profesor —</option>' +
-    todosProfesores
-      .sort((a, b) => a.apellidos.localeCompare(b.apellidos))
-      .map(p => `<option value="${p.id}" data-puesto="${p.puesto}">${p.apellidos}, ${p.nombre} (${p.puesto})</option>`)
-      .join('');
-
-  const selMod = document.getElementById('asig-modulo');
-  selMod.innerHTML = '<option value="">— Selecciona un módulo —</option>' +
-    todosModulos
-      .sort((a, b) => a.nombre.localeCompare(b.nombre))
-      .map(m => `<option value="${m.id}">${m.nombre}${m.codigo ? ' [' + m.codigo + ']' : ''}</option>`)
-      .join('');
-
-  const selGrupo = document.getElementById('asig-grupo');
-  selGrupo.innerHTML = '<option value="">— Selecciona un grupo —</option>' +
+function poblarSelectGrupos() {
+  const sel = document.getElementById('asig-grupo');
+  sel.innerHTML = '<option value="">— Selecciona un grupo —</option>' +
     todosGrupos
       .sort((a, b) => a.ciclo.localeCompare(b.ciclo) || a.curso - b.curso)
       .map(g => `<option value="${g.id}">${g.nombre}</option>`)
@@ -56,48 +43,115 @@ function poblarFiltroGrupos() {
       .join('');
 }
 
-// Al cambiar profesor, actualiza el tipo de cuerpo y muestra aviso de horas
-function actualizarTipoCuerpo() {
-  const sel    = document.getElementById('asig-profesor');
-  const opt    = sel.options[sel.selectedIndex];
-  const puesto = opt?.dataset?.puesto;
-  if (puesto) {
-    document.getElementById('asig-tipo').value = puesto;
-    mostrarAvisoHoras(parseInt(sel.value));
-  } else {
-    document.getElementById('aviso-horas').style.display = 'none';
+// PASO 1: Al elegir grupo → cargar módulos de ese grupo
+async function onGrupoChange() {
+  const grupoId = document.getElementById('asig-grupo').value;
+  const selMod  = document.getElementById('asig-modulo');
+  const selProf = document.getElementById('asig-profesor');
+
+  // Resetear pasos siguientes
+  selMod.innerHTML  = '<option value="">— Cargando módulos... —</option>';
+  selMod.disabled   = true;
+  selProf.innerHTML = '<option value="">— Primero elige un módulo —</option>';
+  selProf.disabled  = true;
+  document.getElementById('asig-horas').value = 0;
+  document.getElementById('aviso-horas').style.display = 'none';
+
+  if (!grupoId) return;
+
+  try {
+    const modulosGrupo = await api.get(`grupos/${grupoId}/modulos`);
+    if (!modulosGrupo.length) {
+      selMod.innerHTML = '<option value="">Sin módulos asignados</option>';
+      return;
+    }
+    selMod.innerHTML = '<option value="">— Selecciona un módulo —</option>' +
+      modulosGrupo
+        .sort((a, b) => a.nombre.localeCompare(b.nombre))
+        .map(m => `<option value="${m.id}" data-pes="${m.horas_pes}" data-ptfp="${m.horas_ptfp}">
+          ${m.nombre}${m.codigo ? ' [' + m.codigo + ']' : ''}
+        </option>`)
+        .join('');
+    selMod.disabled = false;
+  } catch (err) {
+    selMod.innerHTML = '<option value="">Error al cargar módulos</option>';
   }
 }
 
-function mostrarAvisoHoras(profesorId) {
-  const aviso = document.getElementById('aviso-horas');
-  if (!profesorId) { aviso.style.display = 'none'; return; }
+// PASO 2: Al elegir módulo → cargar profesores
+function onModuloChange() {
+  const selProf = document.getElementById('asig-profesor');
 
-  const prof       = todosProfesores.find(p => p.id == profesorId);
+  selProf.innerHTML = '<option value="">— Selecciona un profesor —</option>';
+  selProf.disabled  = false;
+  document.getElementById('asig-horas').value = 0;
+  document.getElementById('aviso-horas').style.display = 'none';
+
+  // Cargar todos los profesores del curso activo
+  selProf.innerHTML = '<option value="">— Selecciona un profesor —</option>' +
+    todosProfesores
+      .sort((a, b) => a.apellidos.localeCompare(b.apellidos))
+      .map(p => `<option value="${p.id}" data-puesto="${p.puesto}"
+                  data-horas-totales="${p.horas_totales}">
+        ${p.apellidos}, ${p.nombre} (${p.puesto})
+      </option>`)
+      .join('');
+}
+
+// PASO 3: Al elegir profesor → autocompletar horas según puesto
+function onProfesorChange() {
+  const selProf = document.getElementById('asig-profesor');
+  const selMod  = document.getElementById('asig-modulo');
+  const opt     = selProf.options[selProf.selectedIndex];
+  const modOpt  = selMod.options[selMod.selectedIndex];
+
+  if (!opt.value || !modOpt.value) return;
+
+  const puesto    = opt.dataset.puesto;
+  const horasPes  = parseFloat(modOpt.dataset.pes)  || 0;
+  const horasPtfp = parseFloat(modOpt.dataset.ptfp) || 0;
+  const horas     = puesto === 'PES' ? horasPes : horasPtfp;
+
+  document.getElementById('asig-horas').value = horas;
+
+  // Mostrar aviso con horas asignadas del profesor
+  mostrarAvisoHoras(parseInt(opt.value), opt.dataset.horasTotales, horas);
+}
+
+function mostrarAvisoHoras(profesorId, horasTotales, horasNuevas) {
+  const aviso      = document.getElementById('aviso-horas');
   const asigActual = document.getElementById('asig-id').value;
   const asignadas  = todasAsignaciones
     .filter(a => a.profesor_id == profesorId && a.id != asigActual)
     .reduce((s, a) => s + parseFloat(a.horas), 0);
 
-  const libres = prof.horas_totales - asignadas;
-  const color  = libres <= 0
+  const total   = parseFloat(horasTotales) || 18;
+  const despues = asignadas + parseFloat(horasNuevas || 0);
+  const libres  = total - despues;
+
+  const color = libres < 0
     ? { bg: '#fef2f2', border: '#fecaca', text: '#b91c1c' }
-    : libres <= 2
-    ? { bg: '#fef9c3', border: '#fde68a', text: '#854d0e' }
+    : libres === 0
+    ? { bg: '#f0fdf4', border: '#bbf7d0', text: '#166534' }
     : { bg: '#eff6ff', border: '#bfdbfe', text: '#1d4ed8' };
 
   aviso.style.cssText = `margin-top:14px;padding:10px 12px;border-radius:6px;font-size:13px;display:block;background:${color.bg};border:1px solid ${color.border};color:${color.text}`;
-  aviso.textContent   = `${prof.apellidos}, ${prof.nombre} — ${asignadas}h asignadas de ${prof.horas_totales}h · Quedan ${libres}h libres`;
+  aviso.innerHTML = `
+    Horas contrato: <strong>${total}h</strong> &nbsp;·&nbsp;
+    Ya asignadas: <strong>${asignadas}h</strong> &nbsp;·&nbsp;
+    Esta asignación: <strong>${horasNuevas}h</strong> &nbsp;·&nbsp;
+    Quedarán libres: <strong>${libres}h</strong>
+  `;
 }
 
-// ---- Render tabla ----------------------------------------
+// ---- Render tabla --------------------------------------
 
 function renderTabla(lista) {
   const tbody = document.getElementById('tbody-asignaciones');
   document.getElementById('total-count').textContent = lista.length;
 
   if (!lista.length) {
-    tbody.innerHTML = '<tr><td colspan="8" class="table-loading">Sin resultados</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="table-loading">Sin resultados</td></tr>';
     return;
   }
 
@@ -121,7 +175,7 @@ function renderTabla(lista) {
     </tr>`).join('');
 }
 
-// ---- Filtros ---------------------------------------------
+// ---- Filtros -------------------------------------------
 
 function aplicarFiltros() {
   const q     = document.getElementById('buscador').value.toLowerCase();
@@ -139,34 +193,48 @@ document.getElementById('buscador').addEventListener('input', aplicarFiltros);
 document.getElementById('filtro-grupo').addEventListener('change', aplicarFiltros);
 document.getElementById('filtro-ciclo').addEventListener('change', aplicarFiltros);
 
-// ---- Modal -----------------------------------------------
+// ---- Modal ---------------------------------------------
 
 function abrirModalNuevo() {
   document.getElementById('modal-titulo').textContent = 'Nueva asignación';
-  document.getElementById('asig-id').value        = '';
-  document.getElementById('asig-profesor').value  = '';
-  document.getElementById('asig-modulo').value    = '';
-  document.getElementById('asig-grupo').value     = '';
-  document.getElementById('asig-horas').value     = 1;
-  document.getElementById('asig-tipo').value      = 'PES';
-  document.getElementById('asig-desdoble').value  = '0';
-  document.getElementById('asig-obs').value       = '';
+  document.getElementById('asig-id').value       = '';
+  document.getElementById('asig-grupo').value    = '';
+  document.getElementById('asig-modulo').value   = '';
+  document.getElementById('asig-modulo').disabled  = true;
+  document.getElementById('asig-profesor').value = '';
+  document.getElementById('asig-profesor').disabled = true;
+  document.getElementById('asig-horas').value    = 0;
+  document.getElementById('asig-desdoble').value = '0';
+  document.getElementById('asig-obs').value      = '';
   document.getElementById('aviso-horas').style.display = 'none';
   openModal();
 }
 
-function abrirModalEditar(id) {
+async function abrirModalEditar(id) {
   const a = todasAsignaciones.find(x => x.id == id);
   if (!a) return;
+
   document.getElementById('modal-titulo').textContent = 'Editar asignación';
-  document.getElementById('asig-id').value        = a.id;
-  document.getElementById('asig-profesor').value  = a.profesor_id;
-  document.getElementById('asig-modulo').value    = a.modulo_id;
-  document.getElementById('asig-grupo').value     = a.grupo_id;
-  document.getElementById('asig-horas').value     = a.horas;
-  document.getElementById('asig-desdoble').value  = a.es_desdoble;
-  document.getElementById('asig-obs').value       = a.observaciones || '';
-  mostrarAvisoHoras(a.profesor_id);
+  document.getElementById('asig-id').value       = a.id;
+  document.getElementById('asig-desdoble').value = a.es_desdoble;
+  document.getElementById('asig-obs').value      = a.observaciones || '';
+
+  // Repoblar grupo y seleccionar
+  poblarSelectGrupos();
+  document.getElementById('asig-grupo').value = a.grupo_id;
+
+  // Cargar módulos del grupo y seleccionar
+  await onGrupoChange();
+  document.getElementById('asig-modulo').value = a.modulo_id;
+
+  // Cargar profesores y seleccionar
+  onModuloChange();
+  document.getElementById('asig-profesor').value = a.profesor_id;
+
+  // Restaurar horas originales
+  document.getElementById('asig-horas').value = a.horas;
+  mostrarAvisoHoras(a.profesor_id, null, a.horas);
+
   openModal();
 }
 
@@ -181,8 +249,8 @@ async function guardarAsignacion() {
     observaciones: document.getElementById('asig-obs').value.trim() || null,
   };
 
-  if (!data.profesor_id || !data.modulo_id || !data.grupo_id || !data.horas) {
-    showAlert('Profesor, módulo, grupo y horas son obligatorios.', 'error');
+  if (!data.profesor_id || !data.modulo_id || !data.grupo_id) {
+    showAlert('Debes seleccionar grupo, módulo y profesor.', 'error');
     return;
   }
 
@@ -195,7 +263,6 @@ async function guardarAsignacion() {
       showAlert('Asignación creada correctamente.');
     }
     closeModal();
-    // Recargar todo para que el aviso de horas sea correcto
     todasAsignaciones = await api.get('asignaciones');
     renderTabla(todasAsignaciones);
     aplicarFiltros();

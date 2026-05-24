@@ -65,4 +65,17 @@ class GrupoController {
         $stmt->execute([$id]);
         echo json_encode(['mensaje' => 'Grupo eliminado']);
     }
+
+    // GET /grupos/{id}/modulos — módulos predefinidos de un grupo
+    public function modulos(int $id): void {
+        $stmt = $this->db->prepare(
+            "SELECT m.id, m.nombre, m.codigo, m.horas_pes, m.horas_ptfp
+             FROM grupo_modulo gm
+             JOIN modulo m ON gm.modulo_id = m.id
+             WHERE gm.grupo_id = ?
+             ORDER BY m.nombre"
+        );
+        $stmt->execute([$id]);
+        echo json_encode($stmt->fetchAll());
+    }
 }
