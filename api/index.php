@@ -31,6 +31,7 @@ $controllerMap = [
     'modulos'      => 'ModuloController',
     'asignaciones' => 'AsignacionController',
     'cursos'       => 'CursoController',
+    'cargos'       => 'CargoController',
 ];
 
 if (!array_key_exists($recurso, $controllerMap)) {
@@ -67,6 +68,35 @@ if ($recurso === 'grupos') {
     $accion = $parts[2] ?? null;
     if ($method === 'GET' && $id && $accion === 'modulos') {
         $controller->modulos($id);
+        exit;
+    }
+}
+
+// Rutas especiales para cargos
+if ($recurso === 'cargos') {
+    $segmento = $parts[1] ?? null;
+    $asigId   = isset($parts[2]) && is_numeric($parts[2]) ? (int)$parts[2] : null;
+
+    // GET /cargos/asignaciones
+    if ($method === 'GET' && $segmento === 'asignaciones') {
+        $controller->asignaciones();
+        exit;
+    }
+    // POST /cargos/asignaciones
+    if ($method === 'POST' && $segmento === 'asignaciones') {
+        $data = json_decode(file_get_contents('php://input'), true);
+        $controller->asignar($data);
+        exit;
+    }
+    // PUT /cargos/asignaciones/{id}
+    if ($method === 'PUT' && $segmento === 'asignaciones' && $asigId) {
+        $data = json_decode(file_get_contents('php://input'), true);
+        $controller->actualizarAsignacion($asigId, $data);
+        exit;
+    }
+    // DELETE /cargos/asignaciones/{id}
+    if ($method === 'DELETE' && $segmento === 'asignaciones' && $asigId) {
+        $controller->eliminarAsignacion($asigId);
         exit;
     }
 }

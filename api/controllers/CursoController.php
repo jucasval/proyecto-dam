@@ -4,42 +4,26 @@
 class CursoController {
     public function __construct(private PDO $db) {}
 
-    // GET /cursos — lista todos los cursos
     public function index(): void {
-        $stmt = $this->db->query(
-            "SELECT * FROM curso_escolar ORDER BY fecha_inicio DESC"
-        );
+        $stmt = $this->db->query("SELECT * FROM curso_escolar ORDER BY fecha_inicio DESC");
         echo json_encode($stmt->fetchAll());
     }
 
-    // GET /cursos/{id} — ver un curso
     public function show(int $id): void {
         $stmt = $this->db->prepare("SELECT * FROM curso_escolar WHERE id = ?");
         $stmt->execute([$id]);
         $row = $stmt->fetch();
-        if (!$row) {
-            http_response_code(404);
-            echo json_encode(['error' => 'Curso no encontrado']);
-            return;
-        }
+        if (!$row) { http_response_code(404); echo json_encode(['error' => 'Curso no encontrado']); return; }
         echo json_encode($row);
     }
 
-    // GET /cursos/activo — devuelve el curso activo actual
     public function activo(): void {
-        $stmt = $this->db->query(
-            "SELECT * FROM curso_escolar WHERE activo = 1 LIMIT 1"
-        );
-        $row = $stmt->fetch();
-        if (!$row) {
-            http_response_code(404);
-            echo json_encode(['error' => 'No hay ningún curso activo']);
-            return;
-        }
+        $stmt = $this->db->query("SELECT * FROM curso_escolar WHERE activo = 1 LIMIT 1");
+        $row  = $stmt->fetch();
+        if (!$row) { http_response_code(404); echo json_encode(['error' => 'No hay ningún curso activo']); return; }
         echo json_encode($row);
     }
 
-    // POST /cursos — crear nuevo curso
     public function store(array $data): void {
         foreach (['nombre', 'fecha_inicio', 'fecha_fin'] as $f) {
             if (empty($data[$f])) {
@@ -51,6 +35,11 @@ class CursoController {
 
         $this->db->beginTransaction();
         try {
+            // Obtener curso activo antes de desactivar
+            $stmtActivo = $this->db->query("SELECT id FROM curso_escolar WHERE activo = 1 LIMIT 1");
+            $cursoAnterior = $stmtActivo->fetch();
+            $cursoAnteriorId = $cursoAnterior ? (int)$cursoAnterior['id'] : null;
+
             // Desactivar curso actual
             $this->db->exec("UPDATE curso_escolar SET activo = 0");
 
@@ -66,14 +55,12 @@ class CursoController {
             ]);
             $nuevoCursoId = $this->db->lastInsertId();
 
-            // Copiar profesores seleccionados del curso anterior
+            // Copiar profesores seleccionados
             $profesoresIds = $data['profesores_ids'] ?? [];
             if (!empty($profesoresIds)) {
                 $placeholders = implode(',', array_fill(0, count($profesoresIds), '?'));
                 $stmt = $this->db->prepare(
-                    "SELECT nombre, apellidos, puesto, horas_totales
-                     FROM profesor
-                     WHERE id IN ($placeholders)"
+                    "SELECT nombre, apellidos, puesto, horas_totales FROM profesor WHERE id IN ($placeholders)"
                 );
                 $stmt->execute($profesoresIds);
                 $profesores = $stmt->fetchAll();
@@ -82,7 +69,8 @@ class CursoController {
                     "INSERT INTO profesor (curso_id, nombre, apellidos, puesto, horas_totales)
                      VALUES (:curso_id, :nombre, :apellidos, :puesto, :horas_totales)"
                 );
-                foreach ($profesores as $p) {
+                $mapaIds = []; // [id_antiguo => id_nuevo]
+                foreach ($profesores as $i => $p) {
                     $insertProf->execute([
                         ':curso_id'      => $nuevoCursoId,
                         ':nombre'        => $p['nombre'],
@@ -90,8 +78,35 @@ class CursoController {
                         ':puesto'        => $p['puesto'],
                         ':horas_totales' => $p['horas_totales'],
                     ]);
-                    // Las asignaciones se crean vacías (horas = 0) solo si se pide
-                    // Por ahora los profesores se copian sin asignaciones
+                    $mapaIds[$profesoresIds[$i]] = $this->db->lastInsertId();
+                }
+
+                // Copiar asignaciones de cargos del curso anterior con los nuevos IDs
+                if ($cursoAnteriorId && !empty($mapaIds)) {
+                    $oldIds = array_keys($mapaIds);
+                    $ph     = implode(',', array_fill(0, count($oldIds), '?'));
+                    $stmtCargos = $this->db->prepare(
+                        "SELECT profesor_id, cargo_id, horas FROM profesor_cargo
+                         WHERE curso_id = ? AND profesor_id IN ($ph)"
+                    );
+                    $stmtCargos->execute(array_merge([$cursoAnteriorId], $oldIds));
+                    $cargosAnteriores = $stmtCargos->fetchAll();
+
+                    $insertCargo = $this->db->prepare(
+                        "INSERT INTO profesor_cargo (curso_id, profesor_id, cargo_id, horas)
+                         VALUES (:curso_id, :profesor_id, :cargo_id, :horas)"
+                    );
+                    foreach ($cargosAnteriores as $c) {
+                        $nuevoProfesorId = $mapaIds[$c['profesor_id']] ?? null;
+                        if ($nuevoProfesorId) {
+                            $insertCargo->execute([
+                                ':curso_id'    => $nuevoCursoId,
+                                ':profesor_id' => $nuevoProfesorId,
+                                ':cargo_id'    => $c['cargo_id'],
+                                ':horas'       => $c['horas'],
+                            ]);
+                        }
+                    }
                 }
             }
 
@@ -110,12 +125,9 @@ class CursoController {
         }
     }
 
-    // PUT /cursos/{id} — editar datos de un curso
     public function update(int $id, array $data): void {
         $stmt = $this->db->prepare(
-            "UPDATE curso_escolar
-             SET nombre=:nombre, fecha_inicio=:fecha_inicio, fecha_fin=:fecha_fin
-             WHERE id=:id"
+            "UPDATE curso_escolar SET nombre=:nombre, fecha_inicio=:fecha_inicio, fecha_fin=:fecha_fin WHERE id=:id"
         );
         $stmt->execute([
             ':nombre'       => trim($data['nombre']),
@@ -126,7 +138,6 @@ class CursoController {
         echo json_encode(['mensaje' => 'Curso actualizado']);
     }
 
-    // PUT /cursos/{id}/activar — cambiar el curso activo
     public function activar(int $id): void {
         $this->db->beginTransaction();
         try {
@@ -142,7 +153,6 @@ class CursoController {
         }
     }
 
-    // GET /cursos/{id}/profesores — profesores de un curso concreto
     public function profesores(int $id): void {
         $stmt = $this->db->prepare(
             "SELECT * FROM profesor WHERE curso_id = ? ORDER BY apellidos, nombre"
@@ -151,18 +161,15 @@ class CursoController {
         echo json_encode($stmt->fetchAll());
     }
 
-    // DELETE /cursos/{id} — solo si no tiene asignaciones
     public function destroy(int $id): void {
-        $check = $this->db->prepare(
-            "SELECT COUNT(*) FROM asignacion WHERE curso_id = ?"
-        );
+        $check = $this->db->prepare("SELECT COUNT(*) FROM asignacion WHERE curso_id = ?");
         $check->execute([$id]);
         if ($check->fetchColumn() > 0) {
             http_response_code(409);
             echo json_encode(['error' => 'No se puede eliminar: el curso tiene asignaciones']);
             return;
         }
-        // Eliminar profesores del curso primero
+        $this->db->prepare("DELETE FROM profesor_cargo WHERE curso_id = ?")->execute([$id]);
         $this->db->prepare("DELETE FROM profesor WHERE curso_id = ?")->execute([$id]);
         $this->db->prepare("DELETE FROM curso_escolar WHERE id = ?")->execute([$id]);
         echo json_encode(['mensaje' => 'Curso eliminado']);

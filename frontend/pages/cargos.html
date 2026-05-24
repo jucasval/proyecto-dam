@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cargos — Dpto. Informática</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../css/main.css">
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <span class="logo-icon">◈</span>
+        <div>
+          <div class="logo-title">Dpto. Informática</div>
+          <div class="logo-sub" id="curso-activo-label">Cargando...</div>
+        </div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Gestión</div>
+      <a href="../index.html"     class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
+      <a href="profesores.html"   class="nav-item"><span class="nav-icon">◎</span> Profesores</a>
+      <a href="grupos.html"       class="nav-item"><span class="nav-icon">◧</span> Grupos</a>
+      <a href="modulos.html"      class="nav-item"><span class="nav-icon">◫</span> Módulos</a>
+      <a href="asignaciones.html" class="nav-item"><span class="nav-icon">◈</span> Asignaciones</a>
+      <div class="nav-section-label" style="margin-top:12px">Administración</div>
+      <a href="cursos.html"       class="nav-item"><span class="nav-icon">◷</span> Cursos</a>
+      <a href="cargos.html"       class="nav-item active"><span class="nav-icon">◑</span> Cargos</a>
+    </nav>
+    <div class="sidebar-footer"><div class="sidebar-footer-text">TFC — DAM 2025</div></div>
+  </aside>
+
+  <main class="main-content">
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">Cargos</h1>
+        <span class="page-sub">Gestión de cargos y dedicaciones</span>
+      </div>
+    </header>
+
+    <div class="content-area">
+      <div id="alert-box" class="alert"></div>
+
+      <!-- Cargos globales -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Catálogo de cargos</span>
+          <button class="btn btn-primary" onclick="abrirModalCargo()">+ Nuevo cargo</button>
+        </div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Cargo</th>
+                <th>Horas por defecto</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-cargos">
+              <tr><td colspan="3" class="table-loading">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Asignaciones de cargos del curso activo -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Asignaciones del curso activo</span>
+          <button class="btn btn-primary" onclick="abrirModalAsignacion()">+ Asignar cargo</button>
+        </div>
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Profesor</th>
+                <th>Puesto</th>
+                <th>Cargo</th>
+                <th>Horas</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tbody-asignaciones-cargo">
+              <tr><td colspan="5" class="table-loading">Cargando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal cargo global -->
+  <div class="modal-overlay" id="modal-cargo">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title" id="titulo-cargo">Nuevo cargo</span>
+        <button class="modal-close" onclick="closeModal('modal-cargo')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="cargo-id">
+        <div class="form-grid">
+          <div class="form-group full">
+            <label for="cargo-nombre">Nombre del cargo</label>
+            <input type="text" id="cargo-nombre" placeholder="Ej: Jefatura de Estudios">
+          </div>
+          <div class="form-group">
+            <label for="cargo-horas">Horas por defecto</label>
+            <input type="number" id="cargo-horas" value="0" min="0" max="20" step="0.5">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-cargo')">Cancelar</button>
+        <button class="btn btn-primary"   onclick="guardarCargo()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal asignación de cargo -->
+  <div class="modal-overlay" id="modal-asignacion">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title" id="titulo-asignacion">Asignar cargo</span>
+        <button class="modal-close" onclick="closeModal('modal-asignacion')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="asig-cargo-id">
+        <div class="form-grid">
+          <div class="form-group full">
+            <label for="asig-cargo-profesor">Profesor</label>
+            <select id="asig-cargo-profesor">
+              <option value="">— Selecciona un profesor —</option>
+            </select>
+          </div>
+          <div class="form-group full">
+            <label for="asig-cargo-cargo">Cargo</label>
+            <select id="asig-cargo-cargo" onchange="autocompletarHoras()">
+              <option value="">— Selecciona un cargo —</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="asig-cargo-horas">Horas</label>
+            <input type="number" id="asig-cargo-horas" value="0" min="0" max="20" step="0.5">
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-asignacion')">Cancelar</button>
+        <button class="btn btn-primary"   onclick="guardarAsignacionCargo()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/cargos.js"></script>
+  <script>
+    api.get('cursos/activo').then(c => {
+      const el = document.getElementById('curso-activo-label');
+      if (el) el.textContent = c.nombre;
+    }).catch(() => {});
+  </script>
+</body>
+</html>
