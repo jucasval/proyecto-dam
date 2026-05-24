@@ -5,8 +5,16 @@
 class AsignacionController {
     public function __construct(private PDO $db) {}
 
+    private function cursoActivoId(): int {
+        $stmt = $this->db->query("SELECT id FROM curso_escolar WHERE activo = 1 LIMIT 1");
+        $row  = $stmt->fetch();
+        if (!$row) throw new Exception('No hay ningún curso activo');
+        return (int)$row['id'];
+    }
+
     public function index(): void {
-        $stmt = $this->db->query(
+        $cursoId = $this->cursoActivoId();
+        $stmt = $this->db->prepare(
             "SELECT a.id,
                     CONCAT(p.apellidos, ', ', p.nombre) AS profesor,
                     p.puesto,
@@ -19,13 +27,16 @@ class AsignacionController {
                     a.observaciones,
                     a.profesor_id,
                     a.modulo_id,
-                    a.grupo_id
+                    a.grupo_id,
+                    a.curso_id
              FROM asignacion a
              JOIN profesor p ON a.profesor_id = p.id
              JOIN modulo   m ON a.modulo_id   = m.id
              JOIN grupo    g ON a.grupo_id    = g.id
+             WHERE a.curso_id = ?
              ORDER BY g.ciclo, g.curso, g.nombre, m.nombre"
         );
+        $stmt->execute([$cursoId]);
         echo json_encode($stmt->fetchAll());
     }
 
@@ -56,11 +67,13 @@ class AsignacionController {
                 return;
             }
         }
+        $cursoId = $this->cursoActivoId();
         $stmt = $this->db->prepare(
-            "INSERT INTO asignacion (profesor_id, modulo_id, grupo_id, horas, es_desdoble, observaciones)
-             VALUES (:profesor_id, :modulo_id, :grupo_id, :horas, :es_desdoble, :observaciones)"
+            "INSERT INTO asignacion (curso_id, profesor_id, modulo_id, grupo_id, horas, es_desdoble, observaciones)
+             VALUES (:curso_id, :profesor_id, :modulo_id, :grupo_id, :horas, :es_desdoble, :observaciones)"
         );
         $stmt->execute([
+            ':curso_id'      => $cursoId,
             ':profesor_id'   => (int)$data['profesor_id'],
             ':modulo_id'     => (int)$data['modulo_id'],
             ':grupo_id'      => (int)$data['grupo_id'],

@@ -16,17 +16,19 @@
         <span class="logo-icon">◈</span>
         <div>
           <div class="logo-title">Dpto. Informática</div>
-          <div class="logo-sub">Curso 2025–2026</div>
+          <div class="logo-sub" id="curso-activo-label">Cargando...</div>
         </div>
       </div>
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Gestión</div>
-      <a href="../index.html"        class="nav-item" data-page="dashboard">  <span class="nav-icon">⊞</span> Dashboard</a>
-      <a href="profesores.html"      class="nav-item active">                  <span class="nav-icon">◎</span> Profesores</a>
-      <a href="grupos.html"          class="nav-item">                         <span class="nav-icon">◧</span> Grupos</a>
-      <a href="modulos.html"         class="nav-item">                         <span class="nav-icon">◫</span> Módulos</a>
-      <a href="asignaciones.html"    class="nav-item">                         <span class="nav-icon">◈</span> Asignaciones</a>
+      <a href="../index.html"     class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
+      <a href="profesores.html"   class="nav-item active"><span class="nav-icon">◎</span> Profesores</a>
+      <a href="grupos.html"       class="nav-item"><span class="nav-icon">◧</span> Grupos</a>
+      <a href="modulos.html"      class="nav-item"><span class="nav-icon">◫</span> Módulos</a>
+      <a href="asignaciones.html" class="nav-item"><span class="nav-icon">◈</span> Asignaciones</a>
+      <div class="nav-section-label" style="margin-top:12px">Administración</div>
+      <a href="cursos.html"       class="nav-item"><span class="nav-icon">◷</span> Cursos</a>
     </nav>
     <div class="sidebar-footer"><div class="sidebar-footer-text">TFC — DAM 2025</div></div>
   </aside>
@@ -70,7 +72,6 @@
     </div>
   </main>
 
-  <!-- Modal crear/editar -->
   <div class="modal-overlay" id="modal">
     <div class="modal">
       <div class="modal-header">
@@ -110,5 +111,11 @@
 
   <script src="../js/api.js"></script>
   <script src="../js/profesores.js"></script>
+  <script>
+    api.get('cursos/activo').then(c => {
+      const el = document.getElementById('curso-activo-label');
+      if (el) el.textContent = c.nombre;
+    }).catch(() => {});
+  </script>
 </body>
 </html>

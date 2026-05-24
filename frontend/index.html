@@ -16,33 +16,21 @@
         <span class="logo-icon">◈</span>
         <div>
           <div class="logo-title">Dpto. Informática</div>
-          <div class="logo-sub">Curso 2025–2026</div>
+          <div class="logo-sub" id="curso-activo-label">Cargando...</div>
         </div>
       </div>
     </div>
-
     <nav class="sidebar-nav">
       <div class="nav-section-label">Gestión</div>
-      <a href="index.html" class="nav-item active" data-page="dashboard">
-        <span class="nav-icon">⊞</span> Dashboard
-      </a>
-      <a href="pages/profesores.html" class="nav-item" data-page="profesores">
-        <span class="nav-icon">◎</span> Profesores
-      </a>
-      <a href="pages/grupos.html" class="nav-item" data-page="grupos">
-        <span class="nav-icon">◧</span> Grupos
-      </a>
-      <a href="pages/modulos.html" class="nav-item" data-page="modulos">
-        <span class="nav-icon">◫</span> Módulos
-      </a>
-      <a href="pages/asignaciones.html" class="nav-item" data-page="asignaciones">
-        <span class="nav-icon">◈</span> Asignaciones
-      </a>
+      <a href="index.html"          class="nav-item active"><span class="nav-icon">⊞</span> Dashboard</a>
+      <a href="pages/profesores.html" class="nav-item"><span class="nav-icon">◎</span> Profesores</a>
+      <a href="pages/grupos.html"     class="nav-item"><span class="nav-icon">◧</span> Grupos</a>
+      <a href="pages/modulos.html"    class="nav-item"><span class="nav-icon">◫</span> Módulos</a>
+      <a href="pages/asignaciones.html" class="nav-item"><span class="nav-icon">◈</span> Asignaciones</a>
+      <div class="nav-section-label" style="margin-top:12px">Administración</div>
+      <a href="pages/cursos.html"   class="nav-item"><span class="nav-icon">◷</span> Cursos</a>
     </nav>
-
-    <div class="sidebar-footer">
-      <div class="sidebar-footer-text">TFC — DAM 2025</div>
-    </div>
+    <div class="sidebar-footer"><div class="sidebar-footer-text">TFC — DAM 2025</div></div>
   </aside>
 
   <main class="main-content">
@@ -60,32 +48,29 @@
     </header>
 
     <div class="content-area">
-
-      <!-- Tarjetas resumen -->
       <div class="stats-grid">
-        <div class="stat-card" id="card-profesores">
+        <div class="stat-card">
           <div class="stat-label">Profesores</div>
           <div class="stat-value" id="stat-profesores">—</div>
           <div class="stat-hint">PES + PTFP</div>
         </div>
-        <div class="stat-card" id="card-grupos">
+        <div class="stat-card">
           <div class="stat-label">Grupos</div>
           <div class="stat-value" id="stat-grupos">—</div>
           <div class="stat-hint">Todos los ciclos</div>
         </div>
-        <div class="stat-card" id="card-modulos">
+        <div class="stat-card">
           <div class="stat-label">Módulos</div>
           <div class="stat-value" id="stat-modulos">—</div>
           <div class="stat-hint">Distintos módulos</div>
         </div>
-        <div class="stat-card stat-card--accent" id="card-asignaciones">
+        <div class="stat-card stat-card--accent">
           <div class="stat-label">Asignaciones</div>
           <div class="stat-value" id="stat-asignaciones">—</div>
           <div class="stat-hint">Total registradas</div>
         </div>
       </div>
 
-      <!-- Tabla rápida de horas por profesor -->
       <div class="card">
         <div class="card-header">
           <span class="card-title">Horas por profesor</span>
@@ -108,11 +93,17 @@
           </table>
         </div>
       </div>
-
     </div>
   </main>
 
   <script src="js/api.js"></script>
   <script src="js/dashboard.js"></script>
+  <script>
+    // Mostrar curso activo en sidebar
+    api.get('cursos/activo').then(c => {
+      const el = document.getElementById('curso-activo-label');
+      if (el) el.textContent = c.nombre;
+    }).catch(() => {});
+  </script>
 </body>
 </html>

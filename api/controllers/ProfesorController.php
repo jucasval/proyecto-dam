@@ -1,17 +1,30 @@
 <?php
 // api/controllers/ProfesorController.php
+// Los profesores son históricos: cada uno pertenece a un curso_escolar
 
 class ProfesorController {
     public function __construct(private PDO $db) {}
 
+    // Obtiene el id del curso activo
+    private function cursoActivoId(): int {
+        $stmt = $this->db->query("SELECT id FROM curso_escolar WHERE activo = 1 LIMIT 1");
+        $row  = $stmt->fetch();
+        if (!$row) throw new Exception('No hay ningún curso activo');
+        return (int)$row['id'];
+    }
+
+    // GET /profesores — lista profesores del curso activo
     public function index(): void {
-        $stmt = $this->db->query(
-            "SELECT * FROM profesor ORDER BY apellidos, nombre"
+        $cursoId = $this->cursoActivoId();
+        $stmt    = $this->db->prepare(
+            "SELECT * FROM profesor WHERE curso_id = ? ORDER BY apellidos, nombre"
         );
+        $stmt->execute([$cursoId]);
         echo json_encode($stmt->fetchAll());
     }
 
-       public function show(int $id): void {
+    // GET /profesores/{id}
+    public function show(int $id): void {
         $stmt = $this->db->prepare("SELECT * FROM profesor WHERE id = ?");
         $stmt->execute([$id]);
         $row = $stmt->fetch();
@@ -23,41 +36,38 @@ class ProfesorController {
         echo json_encode($row);
     }
 
-    /*
-        Aquí ya se usa prepare + execute en lugar de query porque la consulta lleva un dato externo (el ID). Si no encuentra el profesor devuelve un código HTTP 404, 
-        que es el estándar para "no encontrado". El frontend puede detectar ese código y mostrar un mensaje adecuado.
-    */
-
-
+    // POST /profesores
     public function store(array $data): void {
-        $required = ['nombre', 'apellidos', 'puesto'];
-        foreach ($required as $field) {
+        foreach (['nombre', 'apellidos', 'puesto'] as $field) {
             if (empty($data[$field])) {
                 http_response_code(422);
                 echo json_encode(['error' => "El campo '$field' es obligatorio"]);
                 return;
             }
         }
-        $stmt = $this->db->prepare(
-            "INSERT INTO profesor (nombre, apellidos, puesto, horas_totales)
-             VALUES (:nombre, :apellidos, :puesto, :horas_totales)"
+        $cursoId = $this->cursoActivoId();
+        $stmt    = $this->db->prepare(
+            "INSERT INTO profesor (curso_id, nombre, apellidos, puesto, horas_totales)
+             VALUES (:curso_id, :nombre, :apellidos, :puesto, :horas_totales)"
         );
         $stmt->execute([
+            ':curso_id'      => $cursoId,
             ':nombre'        => trim($data['nombre']),
             ':apellidos'     => trim($data['apellidos']),
             ':puesto'        => $data['puesto'],
-            ':horas_totales' => $data['horas_totales'] ?? 18,  //?? 18 es el operador null coalescing: si no se envía horas_totales, usa 18 por defecto
+            ':horas_totales' => $data['horas_totales'] ?? 18,
         ]);
         http_response_code(201);
-        echo json_encode(['id' => $this->db->lastInsertId(), 'mensaje' => 'Profesor creado']);  //lastInsertId() devuelve el ID que MySQL asignó al nuevo registro, útil para el frontend
+        echo json_encode(['id' => $this->db->lastInsertId(), 'mensaje' => 'Profesor creado']);
     }
 
+    // PUT /profesores/{id}
     public function update(int $id, array $data): void {
         $stmt = $this->db->prepare(
             "UPDATE profesor
-             SET nombre = :nombre, apellidos = :apellidos,
-                 puesto = :puesto, horas_totales = :horas_totales
-             WHERE id = :id"
+             SET nombre=:nombre, apellidos=:apellidos,
+                 puesto=:puesto, horas_totales=:horas_totales
+             WHERE id=:id"
         );
         $stmt->execute([
             ':nombre'        => trim($data['nombre']),
@@ -69,8 +79,8 @@ class ProfesorController {
         echo json_encode(['mensaje' => 'Profesor actualizado']);
     }
 
+    // DELETE /profesores/{id}
     public function destroy(int $id): void {
-        // Comprobar si tiene asignaciones
         $check = $this->db->prepare("SELECT COUNT(*) FROM asignacion WHERE profesor_id = ?");
         $check->execute([$id]);
         if ($check->fetchColumn() > 0) {

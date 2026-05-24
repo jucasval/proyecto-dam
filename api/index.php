@@ -20,10 +20,9 @@ $uri     = substr($uri, strlen($base));
 $uri     = trim($uri, '/');
 $parts   = $uri !== '' ? explode('/', $uri) : [];
 
-// Estructura esperada: {recurso}/{id?}
+// Estructura esperada: {recurso}/{id?}/{accion?}
 $recurso = $parts[0] ?? '';
 $id      = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : null;
-
 $method  = $_SERVER['REQUEST_METHOD'];
 
 $controllerMap = [
@@ -31,6 +30,7 @@ $controllerMap = [
     'grupos'       => 'GrupoController',
     'modulos'      => 'ModuloController',
     'asignaciones' => 'AsignacionController',
+    'cursos'       => 'CursoController',
 ];
 
 if (!array_key_exists($recurso, $controllerMap)) {
@@ -41,8 +41,26 @@ if (!array_key_exists($recurso, $controllerMap)) {
 
 $controllerClass = $controllerMap[$recurso];
 require_once __DIR__ . "/controllers/{$controllerClass}.php";
-
 $controller = new $controllerClass(getConnection());
+
+// Rutas especiales para cursos
+if ($recurso === 'cursos') {
+    $segmento = $parts[1] ?? null;
+    $accion   = $parts[2] ?? null;
+
+    if ($method === 'GET' && $segmento === 'activo') {
+        $controller->activo();
+        exit;
+    }
+    if ($method === 'GET' && $id && $accion === 'profesores') {
+        $controller->profesores($id);
+        exit;
+    }
+    if ($method === 'PUT' && $id && $accion === 'activar') {
+        $controller->activar($id);
+        exit;
+    }
+}
 
 switch ($method) {
     case 'GET':
