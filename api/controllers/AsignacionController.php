@@ -1,5 +1,6 @@
 <?php
 // api/controllers/AsignacionController.php
+// tipo_cuerpo se hereda de profesor, no se gestiona en asignacion
 
 class AsignacionController {
     public function __construct(private PDO $db) {}
@@ -14,7 +15,6 @@ class AsignacionController {
                     g.nombre  AS grupo,
                     g.ciclo,
                     a.horas,
-                    a.tipo_cuerpo,
                     a.es_desdoble,
                     a.observaciones,
                     a.profesor_id,
@@ -31,8 +31,9 @@ class AsignacionController {
 
     public function show(int $id): void {
         $stmt = $this->db->prepare(
-            "SELECT a.*, 
+            "SELECT a.*,
                     CONCAT(p.apellidos, ', ', p.nombre) AS profesor_nombre,
+                    p.puesto,
                     m.nombre AS modulo_nombre,
                     g.nombre AS grupo_nombre
              FROM asignacion a
@@ -48,7 +49,7 @@ class AsignacionController {
     }
 
     public function store(array $data): void {
-        foreach (['profesor_id', 'modulo_id', 'grupo_id', 'horas', 'tipo_cuerpo'] as $f) {
+        foreach (['profesor_id', 'modulo_id', 'grupo_id', 'horas'] as $f) {
             if (!isset($data[$f]) || $data[$f] === '') {
                 http_response_code(422);
                 echo json_encode(['error' => "El campo '$f' es obligatorio"]);
@@ -56,17 +57,16 @@ class AsignacionController {
             }
         }
         $stmt = $this->db->prepare(
-            "INSERT INTO asignacion (profesor_id, modulo_id, grupo_id, horas, tipo_cuerpo, es_desdoble, observaciones)
-             VALUES (:profesor_id, :modulo_id, :grupo_id, :horas, :tipo_cuerpo, :es_desdoble, :observaciones)"
+            "INSERT INTO asignacion (profesor_id, modulo_id, grupo_id, horas, es_desdoble, observaciones)
+             VALUES (:profesor_id, :modulo_id, :grupo_id, :horas, :es_desdoble, :observaciones)"
         );
         $stmt->execute([
-            ':profesor_id'  => (int)$data['profesor_id'],
-            ':modulo_id'    => (int)$data['modulo_id'],
-            ':grupo_id'     => (int)$data['grupo_id'],
-            ':horas'        => (float)$data['horas'],
-            ':tipo_cuerpo'  => $data['tipo_cuerpo'],
-            ':es_desdoble'  => $data['es_desdoble']  ? 1 : 0,
-            ':observaciones'=> $data['observaciones'] ?? null,
+            ':profesor_id'   => (int)$data['profesor_id'],
+            ':modulo_id'     => (int)$data['modulo_id'],
+            ':grupo_id'      => (int)$data['grupo_id'],
+            ':horas'         => (float)$data['horas'],
+            ':es_desdoble'   => $data['es_desdoble']   ? 1 : 0,
+            ':observaciones' => $data['observaciones'] ?? null,
         ]);
         http_response_code(201);
         echo json_encode(['id' => $this->db->lastInsertId(), 'mensaje' => 'Asignación creada']);
@@ -76,19 +76,17 @@ class AsignacionController {
         $stmt = $this->db->prepare(
             "UPDATE asignacion
              SET profesor_id=:profesor_id, modulo_id=:modulo_id, grupo_id=:grupo_id,
-                 horas=:horas, tipo_cuerpo=:tipo_cuerpo,
-                 es_desdoble=:es_desdoble, observaciones=:observaciones
+                 horas=:horas, es_desdoble=:es_desdoble, observaciones=:observaciones
              WHERE id=:id"
         );
         $stmt->execute([
-            ':profesor_id'  => (int)$data['profesor_id'],
-            ':modulo_id'    => (int)$data['modulo_id'],
-            ':grupo_id'     => (int)$data['grupo_id'],
-            ':horas'        => (float)$data['horas'],
-            ':tipo_cuerpo'  => $data['tipo_cuerpo'],
-            ':es_desdoble'  => $data['es_desdoble']  ? 1 : 0,
-            ':observaciones'=> $data['observaciones'] ?? null,
-            ':id'           => $id,
+            ':profesor_id'   => (int)$data['profesor_id'],
+            ':modulo_id'     => (int)$data['modulo_id'],
+            ':grupo_id'      => (int)$data['grupo_id'],
+            ':horas'         => (float)$data['horas'],
+            ':es_desdoble'   => $data['es_desdoble']   ? 1 : 0,
+            ':observaciones' => $data['observaciones'] ?? null,
+            ':id'            => $id,
         ]);
         echo json_encode(['mensaje' => 'Asignación actualizada']);
     }

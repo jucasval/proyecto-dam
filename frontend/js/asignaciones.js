@@ -111,7 +111,6 @@ function renderTabla(lista) {
       </td>
       <td>${a.grupo}</td>
       <td><strong>${a.horas}h</strong></td>
-      <td>${badgePuesto(a.tipo_cuerpo)}</td>
       <td>${a.es_desdoble == 1
         ? '<span class="badge" style="background:#fdf4ff;color:#7e22ce;border:1px solid #e9d5ff">Sí</span>'
         : '<span style="color:var(--text-muted)">No</span>'}</td>
@@ -165,7 +164,6 @@ function abrirModalEditar(id) {
   document.getElementById('asig-modulo').value    = a.modulo_id;
   document.getElementById('asig-grupo').value     = a.grupo_id;
   document.getElementById('asig-horas').value     = a.horas;
-  document.getElementById('asig-tipo').value      = a.tipo_cuerpo;
   document.getElementById('asig-desdoble').value  = a.es_desdoble;
   document.getElementById('asig-obs').value       = a.observaciones || '';
   mostrarAvisoHoras(a.profesor_id);
@@ -179,7 +177,6 @@ async function guardarAsignacion() {
     modulo_id:     document.getElementById('asig-modulo').value,
     grupo_id:      document.getElementById('asig-grupo').value,
     horas:         parseFloat(document.getElementById('asig-horas').value),
-    tipo_cuerpo:   document.getElementById('asig-tipo').value,
     es_desdoble:   parseInt(document.getElementById('asig-desdoble').value),
     observaciones: document.getElementById('asig-obs').value.trim() || null,
   };
