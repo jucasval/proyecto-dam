@@ -43,13 +43,11 @@ function poblarFiltroGrupos() {
       .join('');
 }
 
-// PASO 1: Al elegir grupo → cargar módulos de ese grupo
 async function onGrupoChange() {
   const grupoId = document.getElementById('asig-grupo').value;
   const selMod  = document.getElementById('asig-modulo');
   const selProf = document.getElementById('asig-profesor');
 
-  // Resetear pasos siguientes
   selMod.innerHTML  = '<option value="">— Cargando módulos... —</option>';
   selMod.disabled   = true;
   selProf.innerHTML = '<option value="">— Primero elige un módulo —</option>';
@@ -78,16 +76,9 @@ async function onGrupoChange() {
   }
 }
 
-// PASO 2: Al elegir módulo → cargar profesores
 function onModuloChange() {
   const selProf = document.getElementById('asig-profesor');
 
-  selProf.innerHTML = '<option value="">— Selecciona un profesor —</option>';
-  selProf.disabled  = false;
-  document.getElementById('asig-horas').value = 0;
-  document.getElementById('aviso-horas').style.display = 'none';
-
-  // Cargar todos los profesores del curso activo
   selProf.innerHTML = '<option value="">— Selecciona un profesor —</option>' +
     todosProfesores
       .sort((a, b) => a.apellidos.localeCompare(b.apellidos))
@@ -96,9 +87,12 @@ function onModuloChange() {
         ${p.apellidos}, ${p.nombre} (${p.puesto})
       </option>`)
       .join('');
+  selProf.disabled = false;
+
+  document.getElementById('asig-horas').value = 0;
+  document.getElementById('aviso-horas').style.display = 'none';
 }
 
-// PASO 3: Al elegir profesor → autocompletar horas según puesto
 function onProfesorChange() {
   const selProf = document.getElementById('asig-profesor');
   const selMod  = document.getElementById('asig-modulo');
@@ -113,8 +107,6 @@ function onProfesorChange() {
   const horas     = puesto === 'PES' ? horasPes : horasPtfp;
 
   document.getElementById('asig-horas').value = horas;
-
-  // Mostrar aviso con horas asignadas del profesor
   mostrarAvisoHoras(parseInt(opt.value), opt.dataset.horasTotales, horas);
 }
 
@@ -193,6 +185,26 @@ document.getElementById('buscador').addEventListener('input', aplicarFiltros);
 document.getElementById('filtro-grupo').addEventListener('change', aplicarFiltros);
 document.getElementById('filtro-ciclo').addEventListener('change', aplicarFiltros);
 
+// ---- Alerta dentro del modal ---------------------------
+
+function showModalError(msg) {
+  let alertEl = document.getElementById('modal-alert');
+  if (!alertEl) {
+    alertEl = document.createElement('div');
+    alertEl.id = 'modal-alert';
+    alertEl.style.cssText = 'padding:10px 14px;border-radius:6px;font-size:13px;margin-bottom:14px;background:#fef2f2;border:1px solid #fecaca;color:#b91c1c';
+    const modalBody = document.querySelector('#modal .modal-body');
+    modalBody.insertBefore(alertEl, modalBody.firstChild);
+  }
+  alertEl.textContent = msg;
+  alertEl.style.display = 'block';
+}
+
+function hideModalError() {
+  const alertEl = document.getElementById('modal-alert');
+  if (alertEl) alertEl.style.display = 'none';
+}
+
 // ---- Modal ---------------------------------------------
 
 function abrirModalNuevo() {
@@ -207,6 +219,7 @@ function abrirModalNuevo() {
   document.getElementById('asig-desdoble').value = '0';
   document.getElementById('asig-obs').value      = '';
   document.getElementById('aviso-horas').style.display = 'none';
+  hideModalError();
   openModal();
 }
 
@@ -218,20 +231,17 @@ async function abrirModalEditar(id) {
   document.getElementById('asig-id').value       = a.id;
   document.getElementById('asig-desdoble').value = a.es_desdoble;
   document.getElementById('asig-obs').value      = a.observaciones || '';
+  hideModalError();
 
-  // Repoblar grupo y seleccionar
   poblarSelectGrupos();
   document.getElementById('asig-grupo').value = a.grupo_id;
 
-  // Cargar módulos del grupo y seleccionar
   await onGrupoChange();
   document.getElementById('asig-modulo').value = a.modulo_id;
 
-  // Cargar profesores y seleccionar
   onModuloChange();
   document.getElementById('asig-profesor').value = a.profesor_id;
 
-  // Restaurar horas originales
   document.getElementById('asig-horas').value = a.horas;
   mostrarAvisoHoras(a.profesor_id, null, a.horas);
 
@@ -239,6 +249,7 @@ async function abrirModalEditar(id) {
 }
 
 async function guardarAsignacion() {
+  hideModalError();
   const id   = document.getElementById('asig-id').value;
   const data = {
     profesor_id:   document.getElementById('asig-profesor').value,
@@ -250,24 +261,26 @@ async function guardarAsignacion() {
   };
 
   if (!data.profesor_id || !data.modulo_id || !data.grupo_id) {
-    showAlert('Debes seleccionar grupo, módulo y profesor.', 'error');
+    showModalError('Debes seleccionar grupo, módulo y profesor.');
     return;
   }
 
   try {
     if (id) {
       await api.put('asignaciones', id, data);
+      closeModal();
       showAlert('Asignación actualizada correctamente.');
     } else {
       await api.post('asignaciones', data);
+      closeModal();
       showAlert('Asignación creada correctamente.');
     }
-    closeModal();
     todasAsignaciones = await api.get('asignaciones');
     renderTabla(todasAsignaciones);
     aplicarFiltros();
   } catch (err) {
-    showAlert(err.error || 'Error al guardar.', 'error');
+    // Mostrar error dentro del modal sin cerrarlo
+    showModalError(err.error || 'Error al guardar.');
   }
 }
 
