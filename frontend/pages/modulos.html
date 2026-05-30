@@ -74,7 +74,7 @@
   </main>
 
   <div class="modal-overlay" id="modal">
-    <div class="modal">
+    <div class="modal" style="width:600px;max-width:95vw">
       <div class="modal-header">
         <span class="modal-title" id="modal-titulo">Nuevo módulo</span>
         <button class="modal-close" onclick="closeModal()">✕</button>
@@ -100,6 +100,18 @@
             <input type="number" id="mod-horas-ptfp" value="0" min="0" max="30">
           </div>
         </div>
+
+        <!-- Grupos a los que pertenece este módulo -->
+        <div style="margin-top:18px">
+          <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">
+            Grupos que imparten este módulo
+          </div>
+          <div style="border:1px solid var(--border);border-radius:var(--radius-sm);max-height:200px;overflow-y:auto;padding:8px 12px">
+            <div id="check-grupos" style="display:grid;grid-template-columns:1fr 1fr;gap:4px">
+              <!-- checkboxes generados por JS -->
+            </div>
+          </div>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
@@ -109,7 +121,7 @@
   </div>
 
   <script src="../js/api.js"></script>
-  <script src="../js/modulos.js"></script>
+  <script src="../js/mod.js"></script>
   <script>
     api.get('cursos/activo').then(c => {
       const el = document.getElementById('curso-activo-label');

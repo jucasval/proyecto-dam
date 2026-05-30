@@ -72,6 +72,15 @@ if ($recurso === 'cursos') {
     }
 }
 
+// Rutas especiales para modulos
+if ($recurso === 'modulos') {
+    $accion = $parts[2] ?? null;
+    if ($method === 'GET' && $id && $accion === 'grupos') {
+        $controller->grupos($id);
+        exit;
+    }
+}
+
 // Rutas especiales para grupos
 if ($recurso === 'grupos') {
     $accion   = $parts[2] ?? null;

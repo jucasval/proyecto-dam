@@ -1,10 +1,14 @@
-// js/modulos.js
+// js/mod.js
 
 let todosModulos = [];
+let todosGrupos  = [];
 
 async function cargarModulos() {
   try {
-    todosModulos = await api.get('modulos');
+    [todosModulos, todosGrupos] = await Promise.all([
+      api.get('modulos'),
+      api.get('grupos'),
+    ]);
     renderTabla(todosModulos);
   } catch (err) {
     document.getElementById('tbody-modulos').innerHTML =
@@ -50,6 +54,28 @@ document.getElementById('buscador').addEventListener('input', function () {
   ));
 });
 
+// ---- Checkboxes de grupos ------------------------------
+
+function renderCheckGrupos(gruposSeleccionados = []) {
+  const container = document.getElementById('check-grupos');
+  container.innerHTML = todosGrupos
+    .sort((a, b) => a.ciclo.localeCompare(b.ciclo) || a.curso - b.curso)
+    .map(g => `
+      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:3px 0">
+        <input type="checkbox" class="check-grupo" value="${g.id}"
+          ${gruposSeleccionados.includes(g.id) ? 'checked' : ''}>
+        ${g.nombre}
+      </label>`)
+    .join('');
+}
+
+function getGruposSeleccionados() {
+  return Array.from(document.querySelectorAll('.check-grupo:checked'))
+    .map(cb => parseInt(cb.value));
+}
+
+// ---- Modal ---------------------------------------------
+
 function abrirModalNuevo() {
   document.getElementById('modal-titulo').textContent = 'Nuevo módulo';
   document.getElementById('mod-id').value         = '';
@@ -57,10 +83,11 @@ function abrirModalNuevo() {
   document.getElementById('mod-codigo').value     = '';
   document.getElementById('mod-horas-pes').value  = 0;
   document.getElementById('mod-horas-ptfp').value = 0;
+  renderCheckGrupos([]);
   openModal();
 }
 
-function abrirModalEditar(id) {
+async function abrirModalEditar(id) {
   const m = todosModulos.find(x => x.id == id);
   if (!m) return;
   document.getElementById('modal-titulo').textContent = 'Editar módulo';
@@ -69,6 +96,16 @@ function abrirModalEditar(id) {
   document.getElementById('mod-codigo').value     = m.codigo || '';
   document.getElementById('mod-horas-pes').value  = m.horas_pes;
   document.getElementById('mod-horas-ptfp').value = m.horas_ptfp;
+
+  // Cargar grupos que ya tienen este módulo
+  try {
+    const gruposDelModulo = await fetch(`${API_BASE}/modulos/${id}/grupos`)
+      .then(r => r.json());
+    const ids = gruposDelModulo.map(g => g.id);
+    renderCheckGrupos(ids);
+  } catch {
+    renderCheckGrupos([]);
+  }
   openModal();
 }
 
@@ -79,6 +116,7 @@ async function guardarModulo() {
     codigo:     document.getElementById('mod-codigo').value.trim() || null,
     horas_pes:  parseFloat(document.getElementById('mod-horas-pes').value)  || 0,
     horas_ptfp: parseFloat(document.getElementById('mod-horas-ptfp').value) || 0,
+    grupos_ids: getGruposSeleccionados(),
   };
 
   if (!data.nombre) {
@@ -95,7 +133,8 @@ async function guardarModulo() {
       showAlert('Módulo creado correctamente.');
     }
     closeModal();
-    cargarModulos();
+    todosModulos = await api.get('modulos');
+    renderTabla(todosModulos);
   } catch (err) {
     showAlert(err.error || 'Error al guardar.', 'error');
   }
@@ -106,7 +145,8 @@ async function eliminarModulo(id) {
   try {
     await api.delete('modulos', id);
     showAlert('Módulo eliminado.');
-    cargarModulos();
+    todosModulos = await api.get('modulos');
+    renderTabla(todosModulos);
   } catch (err) {
     showAlert(err.error || 'Error al eliminar.', 'error');
   }
