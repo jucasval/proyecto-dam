@@ -78,4 +78,48 @@ class GrupoController {
         $stmt->execute([$id]);
         echo json_encode($stmt->fetchAll());
     }
+
+    // POST /grupos/{id}/modulos — añadir módulo a un grupo
+    public function addModulo(int $grupoId, array $data): void {
+        if (empty($data['modulo_id'])) {
+            http_response_code(422);
+            echo json_encode(['error' => 'modulo_id es obligatorio']);
+            return;
+        }
+        // Verificar que no existe ya
+        $check = $this->db->prepare(
+            "SELECT COUNT(*) FROM grupo_modulo WHERE grupo_id = ? AND modulo_id = ?"
+        );
+        $check->execute([$grupoId, (int)$data['modulo_id']]);
+        if ($check->fetchColumn() > 0) {
+            http_response_code(409);
+            echo json_encode(['error' => 'Este módulo ya está asignado al grupo']);
+            return;
+        }
+        $stmt = $this->db->prepare(
+            "INSERT INTO grupo_modulo (grupo_id, modulo_id) VALUES (?, ?)"
+        );
+        $stmt->execute([$grupoId, (int)$data['modulo_id']]);
+        http_response_code(201);
+        echo json_encode(['mensaje' => 'Módulo añadido al grupo']);
+    }
+
+    // DELETE /grupos/{id}/modulos/{modulo_id} — quitar módulo de un grupo
+    public function removeModulo(int $grupoId, int $moduloId): void {
+        // Verificar que no hay asignaciones activas
+        $check = $this->db->prepare(
+            "SELECT COUNT(*) FROM asignacion WHERE grupo_id = ? AND modulo_id = ?"
+        );
+        $check->execute([$grupoId, $moduloId]);
+        if ($check->fetchColumn() > 0) {
+            http_response_code(409);
+            echo json_encode(['error' => 'No se puede quitar: hay asignaciones activas con este módulo en este grupo']);
+            return;
+        }
+        $stmt = $this->db->prepare(
+            "DELETE FROM grupo_modulo WHERE grupo_id = ? AND modulo_id = ?"
+        );
+        $stmt->execute([$grupoId, $moduloId]);
+        echo json_encode(['mensaje' => 'Módulo quitado del grupo']);
+    }
 }

@@ -70,7 +70,7 @@
                 <th>Ciclo</th>
                 <th>Curso</th>
                 <th>Modalidad</th>
-                <th>Asignaciones</th>
+                <th>Plan de estudios</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -83,6 +83,7 @@
     </div>
   </main>
 
+  <!-- Modal editar/crear grupo -->
   <div class="modal-overlay" id="modal">
     <div class="modal">
       <div class="modal-header">
@@ -131,6 +132,45 @@
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
         <button class="btn btn-primary"   onclick="guardarGrupo()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal gestión de módulos del grupo -->
+  <div class="modal-overlay" id="modal-modulos">
+    <div class="modal" style="width:680px;max-width:95vw">
+      <div class="modal-header">
+        <span class="modal-title" id="titulo-modulos">Módulos del grupo</span>
+        <button class="modal-close" onclick="closeModal('modal-modulos')">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="alert-modulos" class="alert" style="margin-bottom:12px"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+          <div>
+            <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">Módulos asignados</div>
+            <div style="border:1px solid var(--border);border-radius:var(--radius-sm);max-height:320px;overflow-y:auto">
+              <table class="table">
+                <tbody id="tbody-modulos-asignados">
+                  <tr><td class="table-loading">Cargando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">Módulos disponibles</div>
+            <input type="text" id="buscar-modulo-disponible" class="search-input" placeholder="Buscar..." style="width:100%;margin-bottom:8px">
+            <div style="border:1px solid var(--border);border-radius:var(--radius-sm);max-height:280px;overflow-y:auto">
+              <table class="table">
+                <tbody id="tbody-modulos-disponibles">
+                  <tr><td class="table-loading">Cargando...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-modulos')">Cerrar</button>
       </div>
     </div>
   </div>

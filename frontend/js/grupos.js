@@ -1,23 +1,21 @@
 // js/grupos.js
 
-let todosGrupos = [];
-let todasAsignaciones = [];
+let todosGrupos  = [];
+let todosModulos = [];
+let grupoActivoId = null;
+let modulosAsignados = [];
 
 async function cargarGrupos() {
   try {
-    [todosGrupos, todasAsignaciones] = await Promise.all([
+    [todosGrupos, todosModulos] = await Promise.all([
       api.get('grupos'),
-      api.get('asignaciones'),
+      api.get('modulos'),
     ]);
     renderTabla(todosGrupos);
   } catch (err) {
     document.getElementById('tbody-grupos').innerHTML =
       '<tr><td colspan="6" class="table-loading">Error al cargar datos</td></tr>';
   }
-}
-
-function asignacionesDe(grupoId) {
-  return todasAsignaciones.filter(a => a.grupo_id == grupoId).length;
 }
 
 const CICLO_COLORS = {
@@ -49,7 +47,9 @@ function renderTabla(lista) {
         <td>${badgeCiclo(g.ciclo)}</td>
         <td>${g.curso}º</td>
         <td>${g.modalidad}</td>
-        <td style="color:var(--text-secondary)">${asignacionesDe(g.id)} módulos</td>
+        <td>
+          <button class="btn btn-secondary btn-sm" onclick="abrirModalModulos(${g.id}, '${g.nombre}')">Módulos</button>
+        </td>
         <td>
           <button class="btn btn-secondary btn-sm" onclick="abrirModalEditar(${g.id})">Editar</button>
           <button class="btn btn-danger btn-sm"    onclick="eliminarGrupo(${g.id})">Eliminar</button>
@@ -58,7 +58,6 @@ function renderTabla(lista) {
     .join('');
 }
 
-// Filtros
 function aplicarFiltros() {
   const q     = document.getElementById('buscador').value.toLowerCase();
   const ciclo = document.getElementById('filtro-ciclo').value;
@@ -70,6 +69,108 @@ function aplicarFiltros() {
 
 document.getElementById('buscador').addEventListener('input', aplicarFiltros);
 document.getElementById('filtro-ciclo').addEventListener('change', aplicarFiltros);
+
+// ---- Modal módulos del grupo ---------------------------
+
+async function abrirModalModulos(grupoId, grupoNombre) {
+  grupoActivoId = grupoId;
+  document.getElementById('titulo-modulos').textContent = `Módulos — ${grupoNombre}`;
+  document.getElementById('alert-modulos').classList.remove('show');
+  openModal('modal-modulos');
+  await cargarModulosGrupo();
+}
+
+async function cargarModulosGrupo() {
+  try {
+    modulosAsignados = await api.get(`grupos/${grupoActivoId}/modulos`);
+    renderModulosAsignados();
+    renderModulosDisponibles();
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function renderModulosAsignados() {
+  const tbody = document.getElementById('tbody-modulos-asignados');
+  if (!modulosAsignados.length) {
+    tbody.innerHTML = '<tr><td class="table-loading">Sin módulos</td></tr>';
+    return;
+  }
+  tbody.innerHTML = modulosAsignados.map(m => `
+    <tr>
+      <td>
+        <div style="font-size:13px">${m.nombre}</div>
+        ${m.codigo ? `<span style="font-size:11px;font-family:var(--font-mono);color:var(--text-muted)">${m.codigo}</span>` : ''}
+      </td>
+      <td style="width:60px;text-align:right">
+        <button class="btn btn-danger btn-sm" onclick="quitarModulo(${m.id})" title="Quitar">✕</button>
+      </td>
+    </tr>`).join('');
+}
+
+function renderModulosDisponibles(filtro = '') {
+  const asignadosIds = new Set(modulosAsignados.map(m => m.id));
+  const disponibles  = todosModulos.filter(m =>
+    !asignadosIds.has(m.id) &&
+    (filtro === '' || m.nombre.toLowerCase().includes(filtro) || (m.codigo && m.codigo.toLowerCase().includes(filtro)))
+  );
+
+  const tbody = document.getElementById('tbody-modulos-disponibles');
+  if (!disponibles.length) {
+    tbody.innerHTML = '<tr><td class="table-loading">Sin módulos disponibles</td></tr>';
+    return;
+  }
+  tbody.innerHTML = disponibles
+    .sort((a, b) => a.nombre.localeCompare(b.nombre))
+    .map(m => `
+      <tr>
+        <td>
+          <div style="font-size:13px">${m.nombre}</div>
+          ${m.codigo ? `<span style="font-size:11px;font-family:var(--font-mono);color:var(--text-muted)">${m.codigo}</span>` : ''}
+        </td>
+        <td style="width:60px;text-align:right">
+          <button class="btn btn-primary btn-sm" onclick="añadirModulo(${m.id})" title="Añadir">+</button>
+        </td>
+      </tr>`).join('');
+}
+
+document.getElementById('buscar-modulo-disponible').addEventListener('input', function () {
+  renderModulosDisponibles(this.value.toLowerCase());
+});
+
+async function añadirModulo(moduloId) {
+  try {
+    await fetch(`${API_BASE}/grupos/${grupoActivoId}/modulos`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ modulo_id: moduloId }),
+    });
+    await cargarModulosGrupo();
+    showAlert('Módulo añadido al grupo.', 'success', 'alert-modulos');
+  } catch (err) {
+    showAlert('Error al añadir el módulo.', 'error', 'alert-modulos');
+  }
+}
+
+async function quitarModulo(moduloId) {
+  if (!confirmar('¿Quitar este módulo del grupo?')) return;
+  try {
+    const res = await fetch(`${API_BASE}/grupos/${grupoActivoId}/modulos/${moduloId}`, {
+      method: 'DELETE',
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      showAlert(data.error || 'Error al quitar el módulo.', 'error', 'alert-modulos');
+      return;
+    }
+    await cargarModulosGrupo();
+    showAlert('Módulo quitado del grupo.', 'success', 'alert-modulos');
+  } catch (err) {
+    showAlert('Error al quitar el módulo.', 'error', 'alert-modulos');
+  }
+}
+
+// ---- Modal editar grupo --------------------------------
 
 function abrirModalNuevo() {
   document.getElementById('modal-titulo').textContent = 'Nuevo grupo';

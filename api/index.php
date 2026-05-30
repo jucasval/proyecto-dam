@@ -74,9 +74,20 @@ if ($recurso === 'cursos') {
 
 // Rutas especiales para grupos
 if ($recurso === 'grupos') {
-    $accion = $parts[2] ?? null;
+    $accion   = $parts[2] ?? null;
+    $moduloId = isset($parts[3]) && is_numeric($parts[3]) ? (int)$parts[3] : null;
+
     if ($method === 'GET' && $id && $accion === 'modulos') {
         $controller->modulos($id);
+        exit;
+    }
+    if ($method === 'POST' && $id && $accion === 'modulos') {
+        $data = json_decode(file_get_contents('php://input'), true);
+        $controller->addModulo($id, $data);
+        exit;
+    }
+    if ($method === 'DELETE' && $id && $accion === 'modulos' && $moduloId) {
+        $controller->removeModulo($id, $moduloId);
         exit;
     }
 }
