@@ -44,9 +44,9 @@ function renderTabla(lista) {
     .map(g => `
       <tr>
         <td><strong>${g.nombre}</strong></td>
-        <td>${badgeCiclo(g.ciclo)}</td>
-        <td>${g.curso}º</td>
-        <td>${g.modalidad}</td>
+        <td class="hide-tablet">${badgeCiclo(g.ciclo)}</td>
+        <td class="hide-tablet">${g.curso}º</td>
+        <td class="hide-tablet">${g.modalidad}</td>
         <td>
           <button class="btn btn-secondary btn-sm" onclick="abrirModalModulos(${g.id}, '${g.nombre}')">Ver módulos</button>
         </td>
@@ -70,11 +70,9 @@ function aplicarFiltros() {
 document.getElementById('buscador').addEventListener('input', aplicarFiltros);
 document.getElementById('filtro-ciclo').addEventListener('change', aplicarFiltros);
 
-// ---- Checkboxes de módulos -----------------------------
-
 function checkItem(valor, checked, texto, codigo) {
   return `
-    <label style="display:flex;align-items:flex-start;gap:10px;padding:7px 8px;cursor:pointer;border-radius:4px;transition:background 0.1s" 
+    <label style="display:flex;align-items:flex-start;gap:10px;padding:7px 8px;cursor:pointer;border-radius:4px;transition:background 0.1s"
            onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
       <input type="checkbox" class="check-modulo-grupo" value="${valor}"
              ${checked ? 'checked' : ''}
@@ -100,8 +98,6 @@ function getModulosSeleccionados() {
     .map(cb => parseInt(cb.value));
 }
 
-// ---- Modal crear/editar grupo --------------------------
-
 function abrirModalNuevo() {
   document.getElementById('modal-titulo').textContent = 'Nuevo grupo';
   document.getElementById('grupo-id').value        = '';
@@ -122,7 +118,6 @@ async function abrirModalEditar(id) {
   document.getElementById('grupo-ciclo').value     = g.ciclo;
   document.getElementById('grupo-curso').value     = g.curso;
   document.getElementById('grupo-modalidad').value = g.modalidad;
-
   try {
     const mods = await fetch(`${API_BASE}/grupos/${id}/modulos`).then(r => r.json());
     renderCheckModulos(mods.map(m => m.id));
@@ -141,12 +136,7 @@ async function guardarGrupo() {
     modalidad:   document.getElementById('grupo-modalidad').value,
     modulos_ids: getModulosSeleccionados(),
   };
-
-  if (!data.nombre) {
-    showAlert('El nombre del grupo es obligatorio.', 'error');
-    return;
-  }
-
+  if (!data.nombre) { showAlert('El nombre del grupo es obligatorio.', 'error'); return; }
   try {
     if (id) {
       await api.put('grupos', id, data);
@@ -163,7 +153,7 @@ async function guardarGrupo() {
 }
 
 async function eliminarGrupo(id) {
-  if (!confirmar('¿Eliminar este grupo? Se perderán sus asignaciones.')) return;
+  if (!confirmar('¿Eliminar este grupo?')) return;
   try {
     await api.delete('grupos', id);
     showAlert('Grupo eliminado.');
@@ -172,8 +162,6 @@ async function eliminarGrupo(id) {
     showAlert(err.error || 'Error al eliminar.', 'error');
   }
 }
-
-// ---- Modal gestión avanzada de módulos -----------------
 
 async function abrirModalModulos(grupoId, grupoNombre) {
   grupoActivoId = grupoId;
@@ -188,17 +176,12 @@ async function cargarModulosGrupo() {
     modulosAsignados = await fetch(`${API_BASE}/grupos/${grupoActivoId}/modulos`).then(r => r.json());
     renderModulosAsignados();
     renderModulosDisponibles();
-  } catch (err) {
-    console.error(err);
-  }
+  } catch (err) { console.error(err); }
 }
 
 function renderModulosAsignados() {
   const tbody = document.getElementById('tbody-modulos-asignados');
-  if (!modulosAsignados.length) {
-    tbody.innerHTML = '<tr><td class="table-loading">Sin módulos</td></tr>';
-    return;
-  }
+  if (!modulosAsignados.length) { tbody.innerHTML = '<tr><td class="table-loading">Sin módulos</td></tr>'; return; }
   tbody.innerHTML = modulosAsignados.map(m => `
     <tr>
       <td>
@@ -206,7 +189,7 @@ function renderModulosAsignados() {
         ${m.codigo ? `<span style="font-size:11px;font-family:var(--font-mono);color:var(--text-muted)">${m.codigo}</span>` : ''}
       </td>
       <td style="width:50px;text-align:right">
-        <button class="btn btn-danger btn-sm" onclick="quitarModulo(${m.id})" title="Quitar">✕</button>
+        <button class="btn btn-danger btn-sm" onclick="quitarModulo(${m.id})">✕</button>
       </td>
     </tr>`).join('');
 }
@@ -217,24 +200,18 @@ function renderModulosDisponibles(filtro = '') {
     !asignadosIds.has(parseInt(m.id)) &&
     (filtro === '' || m.nombre.toLowerCase().includes(filtro) || (m.codigo && m.codigo.toLowerCase().includes(filtro)))
   );
-
   const tbody = document.getElementById('tbody-modulos-disponibles');
-  if (!disponibles.length) {
-    tbody.innerHTML = '<tr><td class="table-loading">Sin módulos disponibles</td></tr>';
-    return;
-  }
-  tbody.innerHTML = disponibles
-    .sort((a, b) => a.nombre.localeCompare(b.nombre))
-    .map(m => `
-      <tr>
-        <td>
-          <div style="font-size:13px">${m.nombre}</div>
-          ${m.codigo ? `<span style="font-size:11px;font-family:var(--font-mono);color:var(--text-muted)">${m.codigo}</span>` : ''}
-        </td>
-        <td style="width:50px;text-align:right">
-          <button class="btn btn-primary btn-sm" onclick="anadirModulo(${m.id})" title="Añadir">+</button>
-        </td>
-      </tr>`).join('');
+  if (!disponibles.length) { tbody.innerHTML = '<tr><td class="table-loading">Sin módulos disponibles</td></tr>'; return; }
+  tbody.innerHTML = disponibles.sort((a, b) => a.nombre.localeCompare(b.nombre)).map(m => `
+    <tr>
+      <td>
+        <div style="font-size:13px">${m.nombre}</div>
+        ${m.codigo ? `<span style="font-size:11px;font-family:var(--font-mono);color:var(--text-muted)">${m.codigo}</span>` : ''}
+      </td>
+      <td style="width:50px;text-align:right">
+        <button class="btn btn-primary btn-sm" onclick="anadirModulo(${m.id})">+</button>
+      </td>
+    </tr>`).join('');
 }
 
 document.getElementById('buscar-modulo-disponible').addEventListener('input', function () {
@@ -244,32 +221,25 @@ document.getElementById('buscar-modulo-disponible').addEventListener('input', fu
 async function anadirModulo(moduloId) {
   try {
     const res = await fetch(`${API_BASE}/grupos/${grupoActivoId}/modulos`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ modulo_id: moduloId }),
     });
     const data = await res.json();
     if (!res.ok) { showAlert(data.error || 'Error.', 'error', 'alert-modulos'); return; }
     await cargarModulosGrupo();
     showAlert('Módulo añadido.', 'success', 'alert-modulos');
-  } catch (err) {
-    showAlert('Error al añadir.', 'error', 'alert-modulos');
-  }
+  } catch (err) { showAlert('Error al añadir.', 'error', 'alert-modulos'); }
 }
 
 async function quitarModulo(moduloId) {
   if (!confirmar('¿Quitar este módulo del grupo?')) return;
   try {
-    const res = await fetch(`${API_BASE}/grupos/${grupoActivoId}/modulos/${moduloId}`, {
-      method: 'DELETE',
-    });
+    const res = await fetch(`${API_BASE}/grupos/${grupoActivoId}/modulos/${moduloId}`, { method: 'DELETE' });
     const data = await res.json();
     if (!res.ok) { showAlert(data.error || 'Error.', 'error', 'alert-modulos'); return; }
     await cargarModulosGrupo();
     showAlert('Módulo quitado.', 'success', 'alert-modulos');
-  } catch (err) {
-    showAlert('Error al quitar.', 'error', 'alert-modulos');
-  }
+  } catch (err) { showAlert('Error al quitar.', 'error', 'alert-modulos'); }
 }
 
 cargarGrupos();

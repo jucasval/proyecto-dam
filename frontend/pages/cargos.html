@@ -9,7 +9,6 @@
   <link rel="stylesheet" href="../css/main.css">
 </head>
 <body>
-
   <aside class="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo">
@@ -41,11 +40,9 @@
         <span class="page-sub">Gestión de cargos y dedicaciones</span>
       </div>
     </header>
-
     <div class="content-area">
       <div id="alert-box" class="alert"></div>
 
-      <!-- Cargos globales -->
       <div class="card">
         <div class="card-header">
           <span class="card-title">Catálogo de cargos</span>
@@ -67,7 +64,6 @@
         </div>
       </div>
 
-      <!-- Asignaciones de cargos del curso activo -->
       <div class="card">
         <div class="card-header">
           <span class="card-title">Asignaciones del curso activo</span>
@@ -78,7 +74,7 @@
             <thead>
               <tr>
                 <th>Profesor</th>
-                <th>Puesto</th>
+                <th class="hide-tablet">Puesto</th>
                 <th>Cargo</th>
                 <th>Horas</th>
                 <th>Acciones</th>
@@ -93,7 +89,6 @@
     </div>
   </main>
 
-  <!-- Modal cargo global -->
   <div class="modal-overlay" id="modal-cargo">
     <div class="modal">
       <div class="modal-header">
@@ -120,7 +115,6 @@
     </div>
   </div>
 
-  <!-- Modal asignación de cargo -->
   <div class="modal-overlay" id="modal-asignacion">
     <div class="modal">
       <div class="modal-header">
@@ -157,12 +151,12 @@
 
   <script src="../js/api.js"></script>
   <script src="../js/cargos.js"></script>
+  <script src="../js/hamburger.js"></script>
   <script>
     api.get('cursos/activo').then(c => {
       const el = document.getElementById('curso-activo-label');
       if (el) el.textContent = c.nombre;
     }).catch(() => {});
   </script>
-  <script src="../js/hamburger.js"></script>
 </body>
 </html>

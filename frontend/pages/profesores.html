@@ -9,7 +9,6 @@
   <link rel="stylesheet" href="../css/main.css">
 </head>
 <body>
-
   <aside class="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo">
@@ -41,10 +40,8 @@
         <span class="page-sub">Gestión del equipo docente</span>
       </div>
     </header>
-
     <div class="content-area">
       <div id="alert-box" class="alert"></div>
-
       <div class="card">
         <div class="card-header">
           <div class="toolbar">
@@ -58,8 +55,8 @@
               <tr>
                 <th>Apellidos, Nombre</th>
                 <th>Puesto</th>
-                <th>Horas asignadas</th>
-                <th>Horas libres</th>
+                <th class="hide-mobile">Horas asignadas</th>
+                <th class="hide-mobile">Horas libres</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -111,12 +108,12 @@
 
   <script src="../js/api.js"></script>
   <script src="../js/profesores.js"></script>
+  <script src="../js/hamburger.js"></script>
   <script>
     api.get('cursos/activo').then(c => {
       const el = document.getElementById('curso-activo-label');
       if (el) el.textContent = c.nombre;
     }).catch(() => {});
   </script>
-  <script src="../js/hamburger.js"></script>
 </body>
 </html>

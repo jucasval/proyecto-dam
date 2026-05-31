@@ -29,14 +29,14 @@ function renderTabla(lista) {
       return `
         <tr>
           <td>${m.nombre}</td>
-          <td>
+          <td class="hide-tablet">
             ${m.codigo
               ? `<span class="badge" style="background:#f1f5f9;color:#334155;border:1px solid #e2e8f0;font-family:var(--font-mono)">${m.codigo}</span>`
               : '<span style="color:var(--text-muted)">—</span>'}
           </td>
-          <td>${parseFloat(m.horas_pes) > 0 ? m.horas_pes + 'h' : '<span style="color:var(--text-muted)">—</span>'}</td>
-          <td>${parseFloat(m.horas_ptfp) > 0 ? m.horas_ptfp + 'h' : '<span style="color:var(--text-muted)">—</span>'}</td>
-          <td><strong>${total}h</strong></td>
+          <td class="hide-tablet">${parseFloat(m.horas_pes) > 0 ? m.horas_pes + 'h' : '<span style="color:var(--text-muted)">—</span>'}</td>
+          <td class="hide-tablet">${parseFloat(m.horas_ptfp) > 0 ? m.horas_ptfp + 'h' : '<span style="color:var(--text-muted)">—</span>'}</td>
+          <td class="hide-tablet"><strong>${total}h</strong></td>
           <td>
             <button class="btn btn-secondary btn-sm" onclick="abrirModalEditar(${m.id})">Editar</button>
             <button class="btn btn-danger btn-sm"    onclick="eliminarModulo(${m.id})">Eliminar</button>
@@ -53,8 +53,6 @@ document.getElementById('buscador').addEventListener('input', function () {
     (m.codigo && m.codigo.toLowerCase().includes(q))
   ));
 });
-
-// ---- Checkboxes de grupos ------------------------------
 
 function renderCheckGrupos(gruposSeleccionados = []) {
   const container = document.getElementById('check-grupos');
@@ -76,8 +74,6 @@ function getGruposSeleccionados() {
   return Array.from(document.querySelectorAll('.check-grupo:checked'))
     .map(cb => parseInt(cb.value));
 }
-
-// ---- Modal ---------------------------------------------
 
 function abrirModalNuevo() {
   document.getElementById('modal-titulo').textContent = 'Nuevo módulo';

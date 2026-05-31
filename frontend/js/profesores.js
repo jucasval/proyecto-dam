@@ -12,39 +12,41 @@ async function cargarProfesores() {
     renderTabla(todosProfesores);
   } catch (err) {
     document.getElementById('tbody-profesores').innerHTML =
-      '<tr><td colspan="5" class="table-loading">Error al cargar datos</td></tr>';
+      '<tr><td colspan="4" class="table-loading">Error al cargar datos</td></tr>';
   }
 }
 
 function getHoras(profesorId) {
   return horasDetalle.find(h => h.id == profesorId) || {
     horas_modulos: 0, horas_cargos: 0,
-    horas_asignadas: 0, horas_libres: 0
+    horas_asignadas: 0, horas_libres: 0,
+    horas_contrato: 18
   };
 }
 
 function renderTabla(lista) {
   const tbody = document.getElementById('tbody-profesores');
   if (!lista.length) {
-    tbody.innerHTML = '<tr><td colspan="5" class="table-loading">Sin resultados</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" class="table-loading">Sin resultados</td></tr>';
     return;
   }
   tbody.innerHTML = lista
     .sort((a, b) => a.apellidos.localeCompare(b.apellidos))
     .map(p => {
       const h     = getHoras(p.id);
-      const libre = h.horas_libres;
+      const libre = parseFloat(h.horas_libres);
+      const color = libre > 0 ? '#ef4444' : libre == 0 ? '#22c55e' : '#3b82f6';
       return `
         <tr>
           <td><strong>${p.apellidos}</strong>, ${p.nombre}</td>
           <td>${badgePuesto(p.puesto)}</td>
-          <td>
-            ${horasBar(h.horas_asignadas, p.horas_totales)}
+          <td class="hide-mobile">
+            ${horasBar(h.horas_asignadas, h.horas_contrato)}
             <div style="font-size:11px;color:var(--text-muted);margin-top:2px">
-              Módulos: ${h.horas_modulos}h · Cargos: ${h.horas_cargos}h
+              Modulos: ${h.horas_modulos}h - Cargos: ${h.horas_cargos}h
             </div>
           </td>
-          <td style="color:${libre < 0 ? '#ef4444' : libre === 0 ? '#22c55e' : 'inherit'};font-weight:600">
+          <td class="hide-mobile" style="color:${color};font-weight:600">
             ${libre}h
           </td>
           <td>
@@ -115,7 +117,7 @@ async function guardarProfesor() {
 }
 
 async function eliminarProfesor(id) {
-  if (!confirmar('¿Eliminar este profesor? Esta acción no se puede deshacer.')) return;
+  if (!confirmar('Eliminar este profesor? Esta accion no se puede deshacer.')) return;
   try {
     await api.delete('profesores', id);
     showAlert('Profesor eliminado.');

@@ -19,7 +19,8 @@ async function cargarDashboard() {
     const tbody = document.getElementById('tbody-horas');
     tbody.innerHTML = horasDetalle
       .map(p => {
-        const libre = p.horas_libres;
+        const libre = parseFloat(p.horas_libres);
+        const color = libre > 0 ? '#ef4444' : libre == 0 ? '#22c55e' : '#3b82f6';
         return `
           <tr>
             <td><strong>${p.profesor}</strong></td>
@@ -27,10 +28,10 @@ async function cargarDashboard() {
             <td>
               ${horasBar(p.horas_asignadas, p.horas_contrato)}
               <div style="font-size:11px;color:var(--text-muted);margin-top:2px">
-                Módulos: ${p.horas_modulos}h · Cargos: ${p.horas_cargos}h
+                Modulos: ${p.horas_modulos}h - Cargos: ${p.horas_cargos}h
               </div>
             </td>
-            <td style="color:${libre < 0 ? '#ef4444' : libre === 0 ? '#22c55e' : 'inherit'};font-weight:500">
+            <td style="color:${color};font-weight:500">
               ${libre}h
             </td>
           </tr>`;

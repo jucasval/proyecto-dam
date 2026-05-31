@@ -9,7 +9,6 @@
   <link rel="stylesheet" href="../css/main.css">
 </head>
 <body>
-
   <aside class="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo">
@@ -41,10 +40,8 @@
         <span class="page-sub">Catálogo de módulos formativos</span>
       </div>
     </header>
-
     <div class="content-area">
       <div id="alert-box" class="alert"></div>
-
       <div class="card">
         <div class="card-header">
           <div class="toolbar">
@@ -57,10 +54,10 @@
             <thead>
               <tr>
                 <th>Nombre del módulo</th>
-                <th>Código</th>
-                <th>Horas PES</th>
-                <th>Horas PTFP</th>
-                <th>Total horas</th>
+                <th class="hide-tablet">Código</th>
+                <th class="hide-tablet">Horas PES</th>
+                <th class="hide-tablet">Horas PTFP</th>
+                <th class="hide-tablet">Total horas</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -100,16 +97,12 @@
             <input type="number" id="mod-horas-ptfp" value="0" min="0" max="30">
           </div>
         </div>
-
-        <!-- Grupos a los que pertenece este módulo -->
         <div style="margin-top:18px">
           <div style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.05em">
             Grupos que imparten este módulo
           </div>
-          <div style="border:1px solid var(--border);border-radius:var(--radius-sm);max-height:200px;overflow-y:auto;padding:8px 12px">
-            <div id="check-grupos" >
-              <!-- checkboxes generados por JS -->
-            </div>
+          <div style="border:1px solid var(--border);border-radius:var(--radius-sm);max-height:200px;overflow-y:auto;padding:4px 8px">
+            <div id="check-grupos"></div>
           </div>
         </div>
       </div>
@@ -122,12 +115,12 @@
 
   <script src="../js/api.js"></script>
   <script src="../js/mod.js"></script>
+  <script src="../js/hamburger.js"></script>
   <script>
     api.get('cursos/activo').then(c => {
       const el = document.getElementById('curso-activo-label');
       if (el) el.textContent = c.nombre;
     }).catch(() => {});
   </script>
-  <script src="../js/hamburger.js"></script>
 </body>
 </html>

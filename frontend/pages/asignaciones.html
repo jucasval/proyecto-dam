@@ -9,7 +9,6 @@
   <link rel="stylesheet" href="../css/main.css">
 </head>
 <body>
-
   <aside class="sidebar">
     <div class="sidebar-header">
       <div class="sidebar-logo">
@@ -41,10 +40,8 @@
         <span class="page-sub">Asignación de módulos a profesores por grupo</span>
       </div>
     </header>
-
     <div class="content-area">
       <div id="alert-box" class="alert"></div>
-
       <div class="card">
         <div class="card-header">
           <div class="toolbar">
@@ -70,11 +67,11 @@
             <thead>
               <tr>
                 <th>Profesor</th>
-                <th>Puesto</th>
+                <th class="hide-tablet">Puesto</th>
                 <th>Módulo</th>
-                <th>Grupo</th>
-                <th>Horas</th>
-                <th>Desdoble</th>
+                <th class="hide-tablet">Grupo</th>
+                <th class="hide-mobile">Horas</th>
+                <th class="hide-tablet">Desdoble</th>
                 <th>Acciones</th>
               </tr>
             </thead>
@@ -90,7 +87,6 @@
     </div>
   </main>
 
-  <!-- Modal crear/editar -->
   <div class="modal-overlay" id="modal">
     <div class="modal">
       <div class="modal-header">
@@ -99,34 +95,25 @@
       </div>
       <div class="modal-body">
         <input type="hidden" id="asig-id">
-
         <div class="form-grid">
-
-          <!-- PASO 1: Grupo -->
           <div class="form-group full">
             <label for="asig-grupo">1. Selecciona el grupo</label>
             <select id="asig-grupo" onchange="onGrupoChange()">
               <option value="">— Selecciona un grupo —</option>
             </select>
           </div>
-
-          <!-- PASO 2: Módulo (se carga al elegir grupo) -->
           <div class="form-group full">
             <label for="asig-modulo">2. Selecciona el módulo</label>
             <select id="asig-modulo" onchange="onModuloChange()" disabled>
               <option value="">— Primero elige un grupo —</option>
             </select>
           </div>
-
-          <!-- PASO 3: Profesor (se carga al elegir módulo) -->
           <div class="form-group full">
             <label for="asig-profesor">3. Selecciona el profesor</label>
             <select id="asig-profesor" onchange="onProfesorChange()" disabled>
               <option value="">— Primero elige un módulo —</option>
             </select>
           </div>
-
-          <!-- Horas: se autocompletan según puesto del profesor -->
           <div class="form-group">
             <label for="asig-horas">Horas semanales</label>
             <input type="number" id="asig-horas" value="0" min="0" max="20" step="0.5" readonly
@@ -139,15 +126,12 @@
               <option value="1">Sí</option>
             </select>
           </div>
-
           <div class="form-group full">
             <label for="asig-obs">Observaciones</label>
             <input type="text" id="asig-obs" placeholder="Opcional">
           </div>
         </div>
-
-        <!-- Info del profesor seleccionado -->
-        <div id="aviso-horas" style="margin-top:14px;padding:10px 12px;border-radius:6px;font-size:13px;display:none"></div>
+        <div id="aviso-horas" style="margin-top:14px;display:none"></div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
@@ -158,12 +142,12 @@
 
   <script src="../js/api.js"></script>
   <script src="../js/asignaciones.js"></script>
+  <script src="../js/hamburger.js"></script>
   <script>
     api.get('cursos/activo').then(c => {
       const el = document.getElementById('curso-activo-label');
       if (el) el.textContent = c.nombre;
     }).catch(() => {});
   </script>
-  <script src="../js/hamburger.js"></script>
 </body>
 </html>

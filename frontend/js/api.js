@@ -1,16 +1,16 @@
-// js/api.js — Funciones genéricas para consumir la API REST
+// js/api.js
 
-const API_BASE = '/Proyecto DAM/proyecto/api';
+const API_BASE = window.location.hostname === 'localhost'
+  ? '/Proyecto DAM/proyecto/api'
+  : '/api';
 
 const api = {
-
   async get(recurso, id = null) {
     const url = id ? `${API_BASE}/${recurso}/${id}` : `${API_BASE}/${recurso}`;
     const res = await fetch(url);
     if (!res.ok) throw await res.json();
     return res.json();
   },
-
   async post(recurso, data) {
     const res = await fetch(`${API_BASE}/${recurso}`, {
       method: 'POST',
@@ -20,7 +20,6 @@ const api = {
     if (!res.ok) throw await res.json();
     return res.json();
   },
-
   async put(recurso, id, data) {
     const res = await fetch(`${API_BASE}/${recurso}/${id}`, {
       method: 'PUT',
@@ -30,7 +29,6 @@ const api = {
     if (!res.ok) throw await res.json();
     return res.json();
   },
-
   async delete(recurso, id) {
     const res = await fetch(`${API_BASE}/${recurso}/${id}`, {
       method: 'DELETE',
@@ -39,8 +37,6 @@ const api = {
     return res.json();
   },
 };
-
-// --- Utilidades de UI ------------------------------------
 
 function showAlert(msg, tipo = 'success', contenedor = 'alert-box') {
   const el = document.getElementById(contenedor);
@@ -58,14 +54,12 @@ function closeModal(id = 'modal') {
   document.getElementById(id)?.classList.remove('open');
 }
 
-// Cerrar modal al pulsar fuera
 document.addEventListener('click', e => {
   if (e.target.classList.contains('modal-overlay')) {
     e.target.classList.remove('open');
   }
 });
 
-// Cerrar modal con Escape
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
     document.querySelectorAll('.modal-overlay.open')
@@ -75,17 +69,23 @@ document.addEventListener('keydown', e => {
 
 function badgePuesto(puesto) {
   return puesto === 'PES'
-    ? `<span class="badge badge-pes">PES</span>`
-    : `<span class="badge badge-ptfp">PTFP</span>`;
+    ? '<span class="badge badge-pes">PES</span>'
+    : '<span class="badge badge-ptfp">PTFP</span>';
 }
 
 function horasBar(asignadas, total) {
-  const pct = Math.min((asignadas / total) * 100, 100);
-  const cls = asignadas > total ? 'over' : asignadas === total ? 'full' : '';
+  const a   = parseFloat(asignadas) || 0;
+  const t   = parseFloat(total)     || 18;
+  const pct = Math.min((a / t) * 100, 100);
+  const color = a < t  ? '#ef4444'
+              : a == t ? '#22c55e'
+              :           '#3b82f6';
   return `
     <div class="horas-bar">
-      <div class="bar-track"><div class="bar-fill ${cls}" style="width:${pct}%"></div></div>
-      <span>${asignadas}/${total}</span>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${pct}%;background:${color}"></div>
+      </div>
+      <span>${a}/${t}</span>
     </div>`;
 }
 

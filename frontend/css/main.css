@@ -468,7 +468,7 @@ a { text-decoration: none; color: inherit; }
 /* --- Formularios ------------------------------------------ */
 .form-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  
   gap: 14px;
 }
 
@@ -706,7 +706,7 @@ input:focus, select:focus, textarea:focus {
 /* --- Móvil (≤ 480px) -------------------------------------- */
 @media (max-width: 480px) {
   .stats-grid {
-    grid-template-columns: 1fr 1fr;
+    
     gap: 8px;
   }
 
@@ -734,10 +734,12 @@ input:focus, select:focus, textarea:focus {
   .table .hide-mobile { display: none; }
 }
 
-/* --- Checkboxes de módulos en modal ---------------------- */
-@media (max-width: 768px) {
-  #check-modulos-grupo,
-  #check-grupos {
-    grid-template-columns: 1fr !important;
-  }
+
+/* --- Ocultar columnas según tamaño ---------------------- */
+@media (max-width: 900px) {
+  .hide-tablet { display: none !important; }
+}
+
+@media (max-width: 640px) {
+  .hide-mobile { display: none !important; }
 }
