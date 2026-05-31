@@ -14,7 +14,6 @@ async function cargarDashboard() {
     document.getElementById('stat-modulos').textContent      = modulos.length;
     document.getElementById('stat-asignaciones').textContent = asignaciones.length;
 
-    // Cargar horas completas desde la vista (módulos + cargos)
     const horasDetalle = await api.get('profesores/horas');
 
     const tbody = document.getElementById('tbody-horas');
@@ -25,7 +24,6 @@ async function cargarDashboard() {
           <tr>
             <td><strong>${p.profesor}</strong></td>
             <td>${badgePuesto(p.puesto)}</td>
-            <td>${p.horas_contrato}</td>
             <td>
               ${horasBar(p.horas_asignadas, p.horas_contrato)}
               <div style="font-size:11px;color:var(--text-muted);margin-top:2px">
@@ -42,7 +40,7 @@ async function cargarDashboard() {
   } catch (err) {
     console.error('Error cargando dashboard:', err);
     document.getElementById('tbody-horas').innerHTML =
-      '<tr><td colspan="5" class="table-loading">Error al cargar los datos</td></tr>';
+      '<tr><td colspan="4" class="table-loading">Error al cargar los datos</td></tr>';
   }
 }
 

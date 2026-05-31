@@ -58,14 +58,13 @@
               <tr>
                 <th>Apellidos, Nombre</th>
                 <th>Puesto</th>
-                <th>Horas contrato</th>
                 <th>Horas asignadas</th>
                 <th>Horas libres</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody id="tbody-profesores">
-              <tr><td colspan="6" class="table-loading">Cargando...</td></tr>
+              <tr><td colspan="5" class="table-loading">Cargando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -118,5 +117,6 @@
       if (el) el.textContent = c.nombre;
     }).catch(() => {});
   </script>
+  <script src="../js/hamburger.js"></script>
 </body>
 </html>

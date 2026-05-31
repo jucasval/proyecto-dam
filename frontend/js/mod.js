@@ -58,13 +58,16 @@ document.getElementById('buscador').addEventListener('input', function () {
 
 function renderCheckGrupos(gruposSeleccionados = []) {
   const container = document.getElementById('check-grupos');
+  if (!container) return;
   container.innerHTML = todosGrupos
     .sort((a, b) => a.ciclo.localeCompare(b.ciclo) || a.curso - b.curso)
     .map(g => `
-      <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;padding:3px 0">
+      <label style="display:flex;align-items:center;gap:10px;padding:7px 8px;cursor:pointer;border-radius:4px;transition:background 0.1s"
+             onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
         <input type="checkbox" class="check-grupo" value="${g.id}"
-          ${gruposSeleccionados.includes(g.id) ? 'checked' : ''}>
-        ${g.nombre}
+               ${gruposSeleccionados.includes(g.id) ? 'checked' : ''}
+               style="flex-shrink:0;width:15px;height:15px;cursor:pointer;accent-color:#3b82f6">
+        <span style="font-size:13px;color:#0f172a">${g.nombre}</span>
       </label>`)
     .join('');
 }
@@ -97,12 +100,9 @@ async function abrirModalEditar(id) {
   document.getElementById('mod-horas-pes').value  = m.horas_pes;
   document.getElementById('mod-horas-ptfp').value = m.horas_ptfp;
 
-  // Cargar grupos que ya tienen este módulo
   try {
-    const gruposDelModulo = await fetch(`${API_BASE}/modulos/${id}/grupos`)
-      .then(r => r.json());
-    const ids = gruposDelModulo.map(g => g.id);
-    renderCheckGrupos(ids);
+    const gruposDelModulo = await fetch(`${API_BASE}/modulos/${id}/grupos`).then(r => r.json());
+    renderCheckGrupos(gruposDelModulo.map(g => g.id));
   } catch {
     renderCheckGrupos([]);
   }

@@ -12,21 +12,21 @@ async function cargarProfesores() {
     renderTabla(todosProfesores);
   } catch (err) {
     document.getElementById('tbody-profesores').innerHTML =
-      '<tr><td colspan="7" class="table-loading">Error al cargar datos</td></tr>';
+      '<tr><td colspan="5" class="table-loading">Error al cargar datos</td></tr>';
   }
 }
 
 function getHoras(profesorId) {
   return horasDetalle.find(h => h.id == profesorId) || {
-    horas_contrato: 18, horas_modulos: 0, horas_cargos: 0,
-    horas_asignadas: 0, horas_libres: 18
+    horas_modulos: 0, horas_cargos: 0,
+    horas_asignadas: 0, horas_libres: 0
   };
 }
 
 function renderTabla(lista) {
   const tbody = document.getElementById('tbody-profesores');
   if (!lista.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="table-loading">Sin resultados</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="table-loading">Sin resultados</td></tr>';
     return;
   }
   tbody.innerHTML = lista
@@ -38,9 +38,8 @@ function renderTabla(lista) {
         <tr>
           <td><strong>${p.apellidos}</strong>, ${p.nombre}</td>
           <td>${badgePuesto(p.puesto)}</td>
-          <td>${h.horas_contrato}</td>
           <td>
-            ${horasBar(h.horas_asignadas, h.horas_contrato)}
+            ${horasBar(h.horas_asignadas, p.horas_totales)}
             <div style="font-size:11px;color:var(--text-muted);margin-top:2px">
               Módulos: ${h.horas_modulos}h · Cargos: ${h.horas_cargos}h
             </div>
@@ -57,7 +56,6 @@ function renderTabla(lista) {
     .join('');
 }
 
-// Buscador
 document.getElementById('buscador').addEventListener('input', function () {
   const q = this.value.toLowerCase();
   renderTabla(todosProfesores.filter(p =>

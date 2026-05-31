@@ -59,6 +59,7 @@ a { text-decoration: none; color: inherit; }
   position: fixed;
   top: 0; left: 0;
   z-index: 100;
+  transition: transform 0.25s ease;
 }
 
 .sidebar-header {
@@ -154,6 +155,29 @@ a { text-decoration: none; color: inherit; }
   font-family: var(--font-mono);
 }
 
+/* --- Overlay para móvil ----------------------------------- */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 99;
+}
+
+.sidebar-overlay.show { display: block; }
+
+/* --- Botón hamburguesa ------------------------------------ */
+.hamburger {
+  display: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  color: var(--text-primary);
+  font-size: 20px;
+  line-height: 1;
+}
+
 /* --- Main content ----------------------------------------- */
 .main-content {
   margin-left: var(--sidebar-w);
@@ -161,6 +185,7 @@ a { text-decoration: none; color: inherit; }
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  min-width: 0;
 }
 
 /* --- Topbar ----------------------------------------------- */
@@ -175,23 +200,30 @@ a { text-decoration: none; color: inherit; }
   position: sticky;
   top: 0;
   z-index: 50;
+  gap: 12px;
 }
 
 .topbar-left {
   display: flex;
   align-items: baseline;
   gap: 10px;
+  min-width: 0;
+  flex: 1;
 }
 
 .page-title {
   font-size: 16px;
   font-weight: 600;
   color: var(--text-primary);
+  white-space: nowrap;
 }
 
 .page-sub {
   font-size: 13px;
   color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .topbar-badge {
@@ -204,6 +236,7 @@ a { text-decoration: none; color: inherit; }
   border: 1px solid #bbf7d0;
   border-radius: 20px;
   padding: 4px 10px;
+  white-space: nowrap;
 }
 
 .badge-dot {
@@ -211,6 +244,7 @@ a { text-decoration: none; color: inherit; }
   height: 7px;
   border-radius: 50%;
   background: #22c55e;
+  flex-shrink: 0;
 }
 
 /* --- Content area ----------------------------------------- */
@@ -288,6 +322,8 @@ a { text-decoration: none; color: inherit; }
   justify-content: space-between;
   padding: 16px 20px;
   border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .card-title {
@@ -307,11 +343,13 @@ a { text-decoration: none; color: inherit; }
 /* --- Tabla ------------------------------------------------ */
 .table-wrap {
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 500px;
 }
 
 .table thead tr {
@@ -338,7 +376,6 @@ a { text-decoration: none; color: inherit; }
 }
 
 .table tbody tr:last-child td { border-bottom: none; }
-
 .table tbody tr:hover { background: #f8fafc; }
 
 .table-loading {
@@ -400,6 +437,7 @@ a { text-decoration: none; color: inherit; }
   cursor: pointer;
   border: none;
   transition: background 0.15s, box-shadow 0.15s;
+  white-space: nowrap;
 }
 
 .btn-primary {
@@ -458,6 +496,7 @@ input, select, textarea {
   color: var(--text-primary);
   transition: border-color 0.15s, box-shadow 0.15s;
   outline: none;
+  width: 100%;
 }
 
 input:focus, select:focus, textarea:focus {
@@ -478,6 +517,7 @@ input:focus, select:focus, textarea:focus {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s;
+  padding: 16px;
 }
 
 .modal-overlay.open {
@@ -490,7 +530,7 @@ input:focus, select:focus, textarea:focus {
   border-radius: var(--radius-lg);
   box-shadow: 0 20px 60px rgba(0,0,0,0.2);
   width: 520px;
-  max-width: 90vw;
+  max-width: 100%;
   max-height: 90vh;
   overflow-y: auto;
   transform: translateY(12px);
@@ -505,6 +545,10 @@ input:focus, select:focus, textarea:focus {
   justify-content: space-between;
   padding: 18px 22px;
   border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  background: var(--bg-card);
+  z-index: 1;
 }
 
 .modal-title {
@@ -521,6 +565,7 @@ input:focus, select:focus, textarea:focus {
   padding: 2px 6px;
   border-radius: 4px;
   transition: background 0.15s;
+  flex-shrink: 0;
 }
 .modal-close:hover { background: var(--bg-page); color: var(--text-primary); }
 
@@ -532,15 +577,18 @@ input:focus, select:focus, textarea:focus {
   gap: 10px;
   padding: 14px 22px;
   border-top: 1px solid var(--border);
+  position: sticky;
+  bottom: 0;
+  background: var(--bg-card);
 }
 
 /* --- Buscador / toolbar ----------------------------------- */
 .toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
+  flex: 1;
 }
 
 .search-input {
@@ -549,6 +597,7 @@ input:focus, select:focus, textarea:focus {
   border-radius: var(--radius-sm);
   font-size: 13px;
   width: 240px;
+  max-width: 100%;
 }
 
 /* --- Alerta ----------------------------------------------- */
@@ -563,14 +612,132 @@ input:focus, select:focus, textarea:focus {
 .alert-success { background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; }
 .alert-error   { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
 
-/* --- Responsive ------------------------------------------- */
-@media (max-width: 900px) {
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+.nav-disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
-@media (max-width: 640px) {
-  .sidebar { transform: translateX(-100%); }
-  .main-content { margin-left: 0; }
-  .stats-grid { grid-template-columns: 1fr 1fr; }
-  .form-grid { grid-template-columns: 1fr; }
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+/* --- Tablet (≤ 900px) ------------------------------------- */
+@media (max-width: 900px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .page-sub { display: none; }
+
+  .search-input { width: 180px; }
+}
+
+/* --- Tablet pequeña (≤ 768px) ----------------------------- */
+@media (max-width: 768px) {
+  :root { --sidebar-w: 240px; }
+
+  .sidebar {
+    transform: translateX(-100%);
+    box-shadow: none;
+  }
+
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0,0,0,0.3);
+  }
+
+  .main-content {
+    margin-left: 0;
+  }
+
+  .hamburger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .topbar {
+    padding: 0 16px;
+  }
+
+  .content-area {
+    padding: 16px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .stat-value { font-size: 24px; }
+
+  .card-header {
+    padding: 12px 16px;
+  }
+
+  .table th,
+  .table td {
+    padding: 8px 12px;
+    font-size: 12.5px;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal {
+    width: 100% !important;
+    max-width: 100% !important;
+    border-radius: var(--radius-md);
+  }
+
+  .toolbar {
+    width: 100%;
+  }
+
+  .search-input {
+    flex: 1;
+    width: auto;
+    min-width: 120px;
+  }
+}
+
+/* --- Móvil (≤ 480px) -------------------------------------- */
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .stat-card { padding: 12px 14px; }
+  .stat-value { font-size: 20px; }
+  .stat-label { font-size: 10px; }
+
+  .btn { padding: 6px 10px; font-size: 12px; }
+  .btn-sm { padding: 3px 8px; font-size: 11px; }
+
+  .topbar { height: 52px; }
+  .page-title { font-size: 15px; }
+
+  .topbar-badge { display: none; }
+
+  .modal-overlay { padding: 8px; }
+
+  .modal-body { padding: 14px 16px; }
+  .modal-header { padding: 14px 16px; }
+  .modal-footer { padding: 10px 16px; }
+
+  .horas-bar .bar-track { width: 50px; }
+
+  /* Ocultar columnas menos importantes en móvil */
+  .table .hide-mobile { display: none; }
+}
+
+/* --- Checkboxes de módulos en modal ---------------------- */
+@media (max-width: 768px) {
+  #check-modulos-grupo,
+  #check-grupos {
+    grid-template-columns: 1fr !important;
+  }
 }

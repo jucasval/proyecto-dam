@@ -70,19 +70,28 @@ function aplicarFiltros() {
 document.getElementById('buscador').addEventListener('input', aplicarFiltros);
 document.getElementById('filtro-ciclo').addEventListener('change', aplicarFiltros);
 
-// ---- Checkboxes de módulos en el formulario de grupo ---
+// ---- Checkboxes de módulos -----------------------------
+
+function checkItem(valor, checked, texto, codigo) {
+  return `
+    <label style="display:flex;align-items:flex-start;gap:10px;padding:7px 8px;cursor:pointer;border-radius:4px;transition:background 0.1s" 
+           onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+      <input type="checkbox" class="check-modulo-grupo" value="${valor}"
+             ${checked ? 'checked' : ''}
+             style="margin-top:2px;flex-shrink:0;width:15px;height:15px;cursor:pointer;accent-color:#3b82f6">
+      <span style="font-size:13px;line-height:1.4;color:#0f172a">
+        ${texto}
+        ${codigo ? `<span style="color:#94a3b8;font-family:monospace;font-size:11px;margin-left:4px">[${codigo}]</span>` : ''}
+      </span>
+    </label>`;
+}
 
 function renderCheckModulos(modulosSeleccionadosIds = []) {
   const container = document.getElementById('check-modulos-grupo');
   if (!container) return;
   container.innerHTML = todosModulos
     .sort((a, b) => a.nombre.localeCompare(b.nombre))
-    .map(m => `
-      <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:2px 0">
-        <input type="checkbox" class="check-modulo-grupo" value="${m.id}"
-          ${modulosSeleccionadosIds.includes(parseInt(m.id)) ? 'checked' : ''}>
-        ${m.nombre}${m.codigo ? ` <span style="color:var(--text-muted);font-family:var(--font-mono)">[${m.codigo}]</span>` : ''}
-      </label>`)
+    .map(m => checkItem(m.id, modulosSeleccionadosIds.includes(parseInt(m.id)), m.nombre, m.codigo))
     .join('');
 }
 
@@ -114,7 +123,6 @@ async function abrirModalEditar(id) {
   document.getElementById('grupo-curso').value     = g.curso;
   document.getElementById('grupo-modalidad').value = g.modalidad;
 
-  // Cargar módulos ya asignados
   try {
     const mods = await fetch(`${API_BASE}/grupos/${id}/modulos`).then(r => r.json());
     renderCheckModulos(mods.map(m => m.id));

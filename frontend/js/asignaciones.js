@@ -1,5 +1,4 @@
 // js/asignaciones.js
-// Flujo: grupo → módulo → profesor → horas automáticas
 
 let todasAsignaciones = [];
 let todosProfesores   = [];
@@ -22,8 +21,6 @@ async function cargarDatos() {
       '<tr><td colspan="7" class="table-loading">Error al cargar datos</td></tr>';
   }
 }
-
-// ---- Selectores ----------------------------------------
 
 function poblarSelectGrupos() {
   const sel = document.getElementById('asig-grupo');
@@ -82,8 +79,7 @@ function onModuloChange() {
   selProf.innerHTML = '<option value="">— Selecciona un profesor —</option>' +
     todosProfesores
       .sort((a, b) => a.apellidos.localeCompare(b.apellidos))
-      .map(p => `<option value="${p.id}" data-puesto="${p.puesto}"
-                  data-horas-totales="${p.horas_totales}">
+      .map(p => `<option value="${p.id}" data-puesto="${p.puesto}">
         ${p.apellidos}, ${p.nombre} (${p.puesto})
       </option>`)
       .join('');
@@ -107,36 +103,29 @@ function onProfesorChange() {
   const horas     = puesto === 'PES' ? horasPes : horasPtfp;
 
   document.getElementById('asig-horas').value = horas;
-  mostrarAvisoHoras(parseInt(opt.value), opt.dataset.horasTotales, horas);
+  mostrarAvisoHoras(parseInt(opt.value), horas);
 }
 
-function mostrarAvisoHoras(profesorId, horasTotales, horasNuevas) {
+function mostrarAvisoHoras(profesorId, horasNuevas) {
   const aviso      = document.getElementById('aviso-horas');
   const asigActual = document.getElementById('asig-id').value;
   const asignadas  = todasAsignaciones
     .filter(a => a.profesor_id == profesorId && a.id != asigActual)
     .reduce((s, a) => s + parseFloat(a.horas), 0);
 
-  const total   = parseFloat(horasTotales) || 18;
   const despues = asignadas + parseFloat(horasNuevas || 0);
-  const libres  = total - despues;
 
-  const color = libres < 0
+  const color = despues > 18
     ? { bg: '#fef2f2', border: '#fecaca', text: '#b91c1c' }
-    : libres === 0
-    ? { bg: '#f0fdf4', border: '#bbf7d0', text: '#166534' }
     : { bg: '#eff6ff', border: '#bfdbfe', text: '#1d4ed8' };
 
   aviso.style.cssText = `margin-top:14px;padding:10px 12px;border-radius:6px;font-size:13px;display:block;background:${color.bg};border:1px solid ${color.border};color:${color.text}`;
   aviso.innerHTML = `
-    Horas contrato: <strong>${total}h</strong> &nbsp;·&nbsp;
     Ya asignadas: <strong>${asignadas}h</strong> &nbsp;·&nbsp;
     Esta asignación: <strong>${horasNuevas}h</strong> &nbsp;·&nbsp;
-    Quedarán libres: <strong>${libres}h</strong>
+    Total: <strong>${despues}h</strong>
   `;
 }
-
-// ---- Render tabla --------------------------------------
 
 function renderTabla(lista) {
   const tbody = document.getElementById('tbody-asignaciones');
@@ -167,8 +156,6 @@ function renderTabla(lista) {
     </tr>`).join('');
 }
 
-// ---- Filtros -------------------------------------------
-
 function aplicarFiltros() {
   const q     = document.getElementById('buscador').value.toLowerCase();
   const grupo = document.getElementById('filtro-grupo').value;
@@ -184,8 +171,6 @@ function aplicarFiltros() {
 document.getElementById('buscador').addEventListener('input', aplicarFiltros);
 document.getElementById('filtro-grupo').addEventListener('change', aplicarFiltros);
 document.getElementById('filtro-ciclo').addEventListener('change', aplicarFiltros);
-
-// ---- Alerta dentro del modal ---------------------------
 
 function showModalError(msg) {
   let alertEl = document.getElementById('modal-alert');
@@ -204,8 +189,6 @@ function hideModalError() {
   const alertEl = document.getElementById('modal-alert');
   if (alertEl) alertEl.style.display = 'none';
 }
-
-// ---- Modal ---------------------------------------------
 
 function abrirModalNuevo() {
   document.getElementById('modal-titulo').textContent = 'Nueva asignación';
@@ -243,7 +226,7 @@ async function abrirModalEditar(id) {
   document.getElementById('asig-profesor').value = a.profesor_id;
 
   document.getElementById('asig-horas').value = a.horas;
-  mostrarAvisoHoras(a.profesor_id, null, a.horas);
+  mostrarAvisoHoras(a.profesor_id, a.horas);
 
   openModal();
 }
@@ -279,7 +262,6 @@ async function guardarAsignacion() {
     renderTabla(todasAsignaciones);
     aplicarFiltros();
   } catch (err) {
-    // Mostrar error dentro del modal sin cerrarlo
     showModalError(err.error || 'Error al guardar.');
   }
 }
