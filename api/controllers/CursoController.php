@@ -60,7 +60,7 @@ class CursoController {
             if (!empty($profesoresIds)) {
                 $placeholders = implode(',', array_fill(0, count($profesoresIds), '?'));
                 $stmt = $this->db->prepare(
-                    "SELECT nombre, apellidos, puesto, horas_totales FROM profesor WHERE id IN ($placeholders)"
+                    "SELECT id, nombre, apellidos, puesto, horas_totales FROM profesor WHERE id IN ($placeholders)"
                 );
                 $stmt->execute($profesoresIds);
                 $profesores = $stmt->fetchAll();
@@ -70,7 +70,7 @@ class CursoController {
                      VALUES (:curso_id, :nombre, :apellidos, :puesto, :horas_totales)"
                 );
                 $mapaIds = []; // [id_antiguo => id_nuevo]
-                foreach ($profesores as $i => $p) {
+                foreach ($profesores as $p) {
                     $insertProf->execute([
                         ':curso_id'      => $nuevoCursoId,
                         ':nombre'        => $p['nombre'],
@@ -78,16 +78,20 @@ class CursoController {
                         ':puesto'        => $p['puesto'],
                         ':horas_totales' => $p['horas_totales'],
                     ]);
-                    $mapaIds[$profesoresIds[$i]] = $this->db->lastInsertId();
+                    $mapaIds[$p['id']] = $this->db->lastInsertId();
                 }
 
                 // Copiar asignaciones de cargos del curso anterior con los nuevos IDs
+                // EXCEPTO Tutor/a (se asigna manualmente cada año)
                 if ($cursoAnteriorId && !empty($mapaIds)) {
                     $oldIds = array_keys($mapaIds);
                     $ph     = implode(',', array_fill(0, count($oldIds), '?'));
                     $stmtCargos = $this->db->prepare(
-                        "SELECT profesor_id, cargo_id, horas FROM profesor_cargo
-                         WHERE curso_id = ? AND profesor_id IN ($ph)"
+                        "SELECT pc.profesor_id, pc.cargo_id, pc.horas
+                         FROM profesor_cargo pc
+                         JOIN cargo c ON pc.cargo_id = c.id
+                         WHERE pc.curso_id = ? AND pc.profesor_id IN ($ph)
+                         AND c.nombre != 'Tutor/a'"
                     );
                     $stmtCargos->execute(array_merge([$cursoAnteriorId], $oldIds));
                     $cargosAnteriores = $stmtCargos->fetchAll();
