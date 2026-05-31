@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gestión de Horas — Dpto. Informática</title>
+  <title>Dashboard — Dpto. Informática</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/main.css">
@@ -22,14 +22,14 @@
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Gestión</div>
-      <a href="index.html"          class="nav-item active"><span class="nav-icon">⊞</span> Dashboard</a>
+      <a href="index.html"            class="nav-item active"><span class="nav-icon">⊞</span> Dashboard</a>
       <a href="pages/profesores.html" class="nav-item"><span class="nav-icon">◎</span> Profesores</a>
       <a href="pages/grupos.html"     class="nav-item"><span class="nav-icon">◧</span> Grupos</a>
       <a href="pages/modulos.html"    class="nav-item"><span class="nav-icon">◫</span> Módulos</a>
       <a href="pages/asignaciones.html" class="nav-item"><span class="nav-icon">◈</span> Asignaciones</a>
       <div class="nav-section-label" style="margin-top:12px">Administración</div>
-      <a href="pages/cursos.html"   class="nav-item"><span class="nav-icon">◷</span> Cursos</a>
-      <a href="pages/cargos.html"   class="nav-item"><span class="nav-icon">◑</span> Cargos</a>
+      <a href="pages/cursos.html"     class="nav-item"><span class="nav-icon">◷</span> Cursos</a>
+      <a href="pages/cargos.html"     class="nav-item"><span class="nav-icon">◑</span> Cargos</a>
     </nav>
     <div class="sidebar-footer"><div class="sidebar-footer-text">TFC — DAM 2025</div></div>
   </aside>
@@ -40,15 +40,20 @@
         <h1 class="page-title">Dashboard</h1>
         <span class="page-sub">Resumen del departamento</span>
       </div>
-      <div class="topbar-right">
+      <div style="display:flex;align-items:center;gap:12px">
+        <button class="btn btn-secondary" onclick="openModal('modal-informes')" style="display:flex;align-items:center;gap:6px">
+          <span>🖨</span> Informes
+        </button>
         <div class="topbar-badge">
           <span class="badge-dot"></span>
-          Curso activo
+          <span id="curso-activo-badge">Curso activo</span>
         </div>
       </div>
     </header>
 
     <div class="content-area">
+      <div id="alert-box" class="alert"></div>
+
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-label">Profesores</div>
@@ -78,11 +83,11 @@
           <a href="pages/profesores.html" class="card-link">Ver todos →</a>
         </div>
         <div class="table-wrap">
-          <table class="table" id="tabla-horas">
+          <table class="table">
             <thead>
               <tr>
                 <th>Profesor</th>
-                <th>Puesto</th>
+                <th class="hide-mobile">Puesto</th>
                 <th>Asignadas</th>
                 <th>Libres</th>
               </tr>
@@ -96,15 +101,61 @@
     </div>
   </main>
 
+  <!-- Modal informes -->
+  <div class="modal-overlay" id="modal-informes">
+    <div class="modal" style="width:440px;max-width:95vw">
+      <div class="modal-header">
+        <span class="modal-title">Generar informe</span>
+        <button class="modal-close" onclick="closeModal('modal-informes')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px">
+          Informe de horas asignadas por profesor — módulos y cargos del curso activo.
+        </p>
+
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-weight:600;font-size:13px">🖨 Imprimir</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Abre la ventana de impresión del navegador</div>
+            </div>
+            <button class="btn btn-secondary" onclick="imprimirInforme();closeModal('modal-informes')">Imprimir</button>
+          </div>
+
+          <div style="border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-weight:600;font-size:13px">📄 PDF</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Descarga el informe en formato PDF</div>
+            </div>
+            <button class="btn btn-secondary" onclick="exportarPDF();closeModal('modal-informes')">Descargar PDF</button>
+          </div>
+
+          <div style="border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;display:flex;align-items:center;justify-content:space-between">
+            <div>
+              <div style="font-weight:600;font-size:13px">📊 Excel</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Descarga en Excel con 3 hojas: Resumen, Módulos y Cargos</div>
+            </div>
+            <button class="btn btn-primary" onclick="exportarExcel();closeModal('modal-informes')">Descargar Excel</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal('modal-informes')">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
   <script src="js/api.js"></script>
   <script src="js/dashboard.js"></script>
+  <script src="js/informe.js"></script>
+  <script src="js/hamburger.js"></script>
   <script>
-    // Mostrar curso activo en sidebar
     api.get('cursos/activo').then(c => {
-      const el = document.getElementById('curso-activo-label');
-      if (el) el.textContent = c.nombre;
+      const el  = document.getElementById('curso-activo-label');
+      const el2 = document.getElementById('curso-activo-badge');
+      if (el)  el.textContent  = c.nombre;
+      if (el2) el2.textContent = c.nombre;
     }).catch(() => {});
   </script>
-  <script src="js/hamburger.js"></script>
 </body>
 </html>
