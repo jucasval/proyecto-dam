@@ -128,3 +128,12 @@ async function eliminarProfesor(id) {
 }
 
 cargarProfesores();
+
+// Sincronización automática
+initSync('profesores', async (datosNuevos) => {
+  console.log('👥 Profesores actualizados desde otro dispositivo');
+  todosProfesores = datosNuevos;
+  aplicarFiltros();
+}, 5000);
+
+window.addEventListener('beforeunload', () => stopSync('profesores'));

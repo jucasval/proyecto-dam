@@ -158,3 +158,12 @@ async function eliminarAsignacionCargo(id) {
 }
 
 cargarDatos();
+
+// Sincronización automática
+initSync('cargos', async (datosNuevos) => {
+  console.log('🎖️ Cargos actualizados desde otro dispositivo');
+  todosCargos = datosNuevos;
+  renderTabla(todosCargos);
+}, 5000);
+
+window.addEventListener('beforeunload', () => stopSync('cargos'));

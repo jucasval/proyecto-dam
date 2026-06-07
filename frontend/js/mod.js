@@ -32,10 +32,10 @@ function renderTabla(lista) {
           <td class="hide-tablet">
             ${m.codigo
               ? `<span class="badge" style="background:#f1f5f9;color:#334155;border:1px solid #e2e8f0;font-family:var(--font-mono)">${m.codigo}</span>`
-              : '<span style="color:var(--text-muted)">—</span>'}
+              : '<span style="color:var(--text-muted)">-</span>'}
           </td>
-          <td class="hide-tablet">${parseFloat(m.horas_pes) > 0 ? m.horas_pes + 'h' : '<span style="color:var(--text-muted)">—</span>'}</td>
-          <td class="hide-tablet">${parseFloat(m.horas_ptfp) > 0 ? m.horas_ptfp + 'h' : '<span style="color:var(--text-muted)">—</span>'}</td>
+          <td class="hide-tablet">${parseFloat(m.horas_pes) > 0 ? m.horas_pes + 'h' : '<span style="color:var(--text-muted)">-</span>'}</td>
+          <td class="hide-tablet">${parseFloat(m.horas_ptfp) > 0 ? m.horas_ptfp + 'h' : '<span style="color:var(--text-muted)">-</span>'}</td>
           <td class="hide-tablet"><strong>${total}h</strong></td>
           <td>
             <button class="btn btn-secondary btn-sm" onclick="abrirModalEditar(${m.id})">Editar</button>
@@ -76,7 +76,7 @@ function getGruposSeleccionados() {
 }
 
 function abrirModalNuevo() {
-  document.getElementById('modal-titulo').textContent = 'Nuevo módulo';
+  document.getElementById('modal-titulo').textContent = 'Nuevo modulo';
   document.getElementById('mod-id').value         = '';
   document.getElementById('mod-nombre').value     = '';
   document.getElementById('mod-codigo').value     = '';
@@ -89,7 +89,7 @@ function abrirModalNuevo() {
 async function abrirModalEditar(id) {
   const m = todosModulos.find(x => x.id == id);
   if (!m) return;
-  document.getElementById('modal-titulo').textContent = 'Editar módulo';
+  document.getElementById('modal-titulo').textContent = 'Editar modulo';
   document.getElementById('mod-id').value         = m.id;
   document.getElementById('mod-nombre').value     = m.nombre;
   document.getElementById('mod-codigo').value     = m.codigo || '';
@@ -116,17 +116,17 @@ async function guardarModulo() {
   };
 
   if (!data.nombre) {
-    showAlert('El nombre del módulo es obligatorio.', 'error');
+    showAlert('El nombre del modulo es obligatorio.', 'error');
     return;
   }
 
   try {
     if (id) {
       await api.put('modulos', id, data);
-      showAlert('Módulo actualizado correctamente.');
+      showAlert('Modulo actualizado correctamente.');
     } else {
       await api.post('modulos', data);
-      showAlert('Módulo creado correctamente.');
+      showAlert('Modulo creado correctamente.');
     }
     closeModal();
     todosModulos = await api.get('modulos');
@@ -137,10 +137,10 @@ async function guardarModulo() {
 }
 
 async function eliminarModulo(id) {
-  if (!confirmar('¿Eliminar este módulo? Esta acción no se puede deshacer.')) return;
+  if (!confirmar('Eliminar este modulo? Esta accion no se puede deshacer.')) return;
   try {
     await api.delete('modulos', id);
-    showAlert('Módulo eliminado.');
+    showAlert('Modulo eliminado.');
     todosModulos = await api.get('modulos');
     renderTabla(todosModulos);
   } catch (err) {
@@ -149,3 +149,12 @@ async function eliminarModulo(id) {
 }
 
 cargarModulos();
+
+// Sincronización automática
+initSync('modulos', async (datosNuevos) => {
+  console.log('📘 Módulos actualizados desde otro dispositivo');
+  todosModulos = datosNuevos;
+  aplicarFiltros();
+}, 5000);
+
+window.addEventListener('beforeunload', () => stopSync('modulos'));

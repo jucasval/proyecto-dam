@@ -1,10 +1,16 @@
 <?php
 // api/index.php  — Punto de entrada de la API REST
+ini_set('display_errors', 1);
+error_reporting(E_ALL);
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
+// Prevenir caché en nginx/proxies
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
+header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
@@ -26,6 +32,7 @@ $id      = isset($parts[1]) && is_numeric($parts[1]) ? (int)$parts[1] : null;
 $method  = $_SERVER['REQUEST_METHOD'];
 
 $controllerMap = [
+    'usuarios'     => 'UsuarioController',
     'profesores'   => 'ProfesorController',
     'grupos'       => 'GrupoController',
     'modulos'      => 'ModuloController',

@@ -1,3 +1,8 @@
+<?php
+require_once __DIR__ . '/../../auth.php';
+$paginaActiva = 'profesores';
+$v = time();
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -6,32 +11,10 @@
   <title>Profesores — Dpto. Informática</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/main.css?v=<?= $v ?>">
 </head>
 <body>
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-logo">
-        <span class="logo-icon">◈</span>
-        <div>
-          <div class="logo-title">Dpto. Informática</div>
-          <div class="logo-sub" id="curso-activo-label">Cargando...</div>
-        </div>
-      </div>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section-label">Gestión</div>
-      <a href="../index.html"     class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
-      <a href="profesores.html"   class="nav-item active"><span class="nav-icon">◎</span> Profesores</a>
-      <a href="grupos.html"       class="nav-item"><span class="nav-icon">◧</span> Grupos</a>
-      <a href="modulos.html"      class="nav-item"><span class="nav-icon">◫</span> Módulos</a>
-      <a href="asignaciones.html" class="nav-item"><span class="nav-icon">◈</span> Asignaciones</a>
-      <div class="nav-section-label" style="margin-top:12px">Administración</div>
-      <a href="cursos.html"       class="nav-item"><span class="nav-icon">◷</span> Cursos</a>
-      <a href="cargos.html"       class="nav-item"><span class="nav-icon">◑</span> Cargos</a>
-    </nav>
-    <div class="sidebar-footer"><div class="sidebar-footer-text">TFC — DAM 2025</div></div>
-  </aside>
+<?php require_once __DIR__ . '/../includes/sidebar.php'; ?>
 
   <main class="main-content">
     <header class="topbar">
@@ -39,6 +22,7 @@
         <h1 class="page-title">Profesores</h1>
         <span class="page-sub">Gestión del equipo docente</span>
       </div>
+      <a href="../../logout.php" class="btn btn-secondary" style="font-size:12px">Salir</a>
     </header>
     <div class="content-area">
       <div id="alert-box" class="alert"></div>
@@ -80,17 +64,17 @@
         <div class="form-grid">
           <div class="form-group">
             <label for="prof-nombre">Nombre</label>
-            <input type="text" id="prof-nombre" placeholder="Ej: María Ángeles">
+            <input type="text" id="prof-nombre" placeholder="Ej: Maria Angeles">
           </div>
           <div class="form-group">
             <label for="prof-apellidos">Apellidos</label>
-            <input type="text" id="prof-apellidos" placeholder="Ej: García López">
+            <input type="text" id="prof-apellidos" placeholder="Ej: Garcia Lopez">
           </div>
           <div class="form-group">
             <label for="prof-puesto">Puesto</label>
             <select id="prof-puesto">
-              <option value="PES">PES — Profesor/a de Enseñanza Secundaria</option>
-              <option value="PTFP">PTFP — Profesor/a Técnico de FP</option>
+              <option value="PES">PES</option>
+              <option value="PTFP">PTFP</option>
             </select>
           </div>
           <div class="form-group">
@@ -106,9 +90,10 @@
     </div>
   </div>
 
-  <script src="../js/api.js"></script>
-  <script src="../js/profesores.js"></script>
-  <script src="../js/hamburger.js"></script>
+  <script src="../js/api.js?v=<?= $v ?>"></script>
+  <script src="../js/sync.js?v=<?= $v ?>"></script>
+  <script src="../js/profesores.js?v=<?= $v ?>"></script>
+  <script src="../js/hamburger.js?v=<?= $v ?>"></script>
   <script>
     api.get('cursos/activo').then(c => {
       const el = document.getElementById('curso-activo-label');

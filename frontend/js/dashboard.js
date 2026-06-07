@@ -46,3 +46,11 @@ async function cargarDashboard() {
 }
 
 cargarDashboard();
+
+// Sincronización automática
+initSync('asignaciones', async (datosNuevos) => {
+  console.log('📊 Dashboard actualizado desde otro dispositivo');
+  cargarDashboard();
+}, 5000);
+
+window.addEventListener('beforeunload', () => stopSync('asignaciones'));

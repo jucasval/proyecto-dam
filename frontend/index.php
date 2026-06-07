@@ -1,38 +1,21 @@
+<?php
+require_once __DIR__ . '/../auth.php';
+$paginaActiva = 'dashboard';
+$isRoot = true;
+$v = time();
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard — Dpto. Informática</title>
+  <title>Dashboard — Dpto. Informatica</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/main.css?v=<?= $v ?>">
 </head>
 <body>
-
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-logo">
-        <span class="logo-icon">◈</span>
-        <div>
-          <div class="logo-title">Dpto. Informática</div>
-          <div class="logo-sub" id="curso-activo-label">Cargando...</div>
-        </div>
-      </div>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section-label">Gestión</div>
-      <a href="index.html"            class="nav-item active"><span class="nav-icon">⊞</span> Dashboard</a>
-      <a href="pages/profesores.html" class="nav-item"><span class="nav-icon">◎</span> Profesores</a>
-      <a href="pages/grupos.html"     class="nav-item"><span class="nav-icon">◧</span> Grupos</a>
-      <a href="pages/modulos.html"    class="nav-item"><span class="nav-icon">◫</span> Módulos</a>
-      <a href="pages/asignaciones.html" class="nav-item"><span class="nav-icon">◈</span> Asignaciones</a>
-      <div class="nav-section-label" style="margin-top:12px">Administración</div>
-      <a href="pages/cursos.html"     class="nav-item"><span class="nav-icon">◷</span> Cursos</a>
-      <a href="pages/cargos.html"     class="nav-item"><span class="nav-icon">◑</span> Cargos</a>
-    </nav>
-    <div class="sidebar-footer"><div class="sidebar-footer-text">TFC — DAM 2025</div></div>
-  </aside>
+<?php require_once __DIR__ . '/includes/sidebar.php'; ?>
 
   <main class="main-content">
     <header class="topbar">
@@ -48,12 +31,12 @@
           <span class="badge-dot"></span>
           <span id="curso-activo-badge">Curso activo</span>
         </div>
+        <a href="../logout.php" class="btn btn-secondary" style="font-size:12px">Salir</a>
       </div>
     </header>
 
     <div class="content-area">
       <div id="alert-box" class="alert"></div>
-
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-label">Profesores</div>
@@ -66,9 +49,9 @@
           <div class="stat-hint">Todos los ciclos</div>
         </div>
         <div class="stat-card">
-          <div class="stat-label">Módulos</div>
+          <div class="stat-label">Modulos</div>
           <div class="stat-value" id="stat-modulos">—</div>
-          <div class="stat-hint">Distintos módulos</div>
+          <div class="stat-hint">Distintos modulos</div>
         </div>
         <div class="stat-card stat-card--accent">
           <div class="stat-label">Asignaciones</div>
@@ -80,7 +63,7 @@
       <div class="card">
         <div class="card-header">
           <span class="card-title">Horas por profesor</span>
-          <a href="pages/profesores.html" class="card-link">Ver todos →</a>
+          <a href="pages/profesores.php" class="card-link">Ver todos →</a>
         </div>
         <div class="table-wrap">
           <table class="table">
@@ -110,18 +93,16 @@
       </div>
       <div class="modal-body">
         <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px">
-          Informe de horas asignadas por profesor — módulos y cargos del curso activo.
+          Informe de horas asignadas por profesor — modulos y cargos del curso activo.
         </p>
-
         <div style="display:flex;flex-direction:column;gap:12px">
           <div style="border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;display:flex;align-items:center;justify-content:space-between">
             <div>
               <div style="font-weight:600;font-size:13px">🖨 Imprimir</div>
-              <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Abre la ventana de impresión del navegador</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Abre la ventana de impresion del navegador</div>
             </div>
             <button class="btn btn-secondary" onclick="imprimirInforme();closeModal('modal-informes')">Imprimir</button>
           </div>
-
           <div style="border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;display:flex;align-items:center;justify-content:space-between">
             <div>
               <div style="font-weight:600;font-size:13px">📄 PDF</div>
@@ -129,11 +110,10 @@
             </div>
             <button class="btn btn-secondary" onclick="exportarPDF();closeModal('modal-informes')">Descargar PDF</button>
           </div>
-
           <div style="border:1px solid var(--border);border-radius:var(--radius-md);padding:16px;display:flex;align-items:center;justify-content:space-between">
             <div>
               <div style="font-weight:600;font-size:13px">📊 Excel</div>
-              <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Descarga en Excel con 3 hojas: Resumen, Módulos y Cargos</div>
+              <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Descarga en Excel con 3 hojas: Resumen, Modulos y Cargos</div>
             </div>
             <button class="btn btn-primary" onclick="exportarExcel();closeModal('modal-informes')">Descargar Excel</button>
           </div>
@@ -145,10 +125,10 @@
     </div>
   </div>
 
-  <script src="js/api.js"></script>
-  <script src="js/dashboard.js"></script>
-  <script src="js/informe.js"></script>
-  <script src="js/hamburger.js"></script>
+  <script src="js/api.js?v=<?= $v ?>"></script>
+  <script src="js/dashboard.js?v=<?= $v ?>"></script>
+  <script src="js/informe.js?v=<?= $v ?>"></script>
+  <script src="js/hamburger.js?v=<?= $v ?>"></script>
   <script>
     api.get('cursos/activo').then(c => {
       const el  = document.getElementById('curso-activo-label');

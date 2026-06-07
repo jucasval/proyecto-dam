@@ -165,8 +165,10 @@ async function eliminarGrupo(id) {
 
 async function abrirModalModulos(grupoId, grupoNombre) {
   grupoActivoId = grupoId;
-  document.getElementById('titulo-modulos').textContent = `Módulos — ${grupoNombre}`;
+  document.getElementById('titulo-modulos').textContent = `Plan de estudios — ${grupoNombre}`;
+  document.getElementById('alert-modulos').style.display = 'none';
   document.getElementById('alert-modulos').classList.remove('show');
+  cambiarTab('asignados');
   openModal('modal-modulos');
   await cargarModulosGrupo();
 }
@@ -176,22 +178,51 @@ async function cargarModulosGrupo() {
     modulosAsignados = await fetch(`${API_BASE}/grupos/${grupoActivoId}/modulos`).then(r => r.json());
     renderModulosAsignados();
     renderModulosDisponibles();
+    document.getElementById('count-asignados').textContent = modulosAsignados.length;
+    document.getElementById('count-disponibles').textContent = 
+      todosModulos.filter(m => !modulosAsignados.map(ma => ma.id).includes(parseInt(m.id))).length;
   } catch (err) { console.error(err); }
 }
 
+function cambiarTab(tab) {
+  const tabAsignados = document.getElementById('tab-asignados');
+  const tabDisponibles = document.getElementById('tab-disponibles');
+  
+  if (!tabAsignados || !tabDisponibles) {
+    console.error('Elementos de tabs no encontrados');
+    return;
+  }
+  
+  tabAsignados.style.display = tab === 'asignados' ? 'block' : 'none';
+  tabDisponibles.style.display = tab === 'disponibles' ? 'block' : 'none';
+  
+  const btns = document.querySelectorAll('.tab-btn');
+  if (btns.length > 0) {
+    btns.forEach((btn, idx) => {
+      const isActive = (idx === 0 && tab === 'asignados') || (idx === 1 && tab === 'disponibles');
+      btn.style.color = isActive ? 'var(--text-primary)' : 'var(--text-secondary)';
+      btn.style.borderBottomColor = isActive ? '#3b82f6' : 'transparent';
+      btn.style.fontWeight = isActive ? '600' : '500';
+    });
+  }
+}
+
 function renderModulosAsignados() {
-  const tbody = document.getElementById('tbody-modulos-asignados');
-  if (!modulosAsignados.length) { tbody.innerHTML = '<tr><td class="table-loading">Sin módulos</td></tr>'; return; }
-  tbody.innerHTML = modulosAsignados.map(m => `
-    <tr>
-      <td>
-        <div style="font-size:13px">${m.nombre}</div>
-        ${m.codigo ? `<span style="font-size:11px;font-family:var(--font-mono);color:var(--text-muted)">${m.codigo}</span>` : ''}
-      </td>
-      <td style="width:50px;text-align:right">
-        <button class="btn btn-danger btn-sm" onclick="quitarModulo(${m.id})">✕</button>
-      </td>
-    </tr>`).join('');
+  const container = document.getElementById('lista-modulos-asignados');
+  if (!modulosAsignados.length) { 
+    container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:14px">No hay módulos asignados</div>'; 
+    return; 
+  }
+  container.innerHTML = modulosAsignados
+    .sort((a, b) => a.nombre.localeCompare(b.nombre))
+    .map(m => `
+      <div style="padding:12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;transition:background 0.1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:500;color:#0f172a;font-size:13px">${m.nombre}</div>
+          ${m.codigo ? `<div style="font-size:11px;font-family:monospace;color:#64748b;margin-top:2px">${m.codigo}</div>` : ''}
+        </div>
+        <button class="btn btn-danger btn-sm" onclick="quitarModulo(${m.id})" style="flex-shrink:0">✕ Quitar</button>
+      </div>`).join('');
 }
 
 function renderModulosDisponibles(filtro = '') {
@@ -200,22 +231,27 @@ function renderModulosDisponibles(filtro = '') {
     !asignadosIds.has(parseInt(m.id)) &&
     (filtro === '' || m.nombre.toLowerCase().includes(filtro) || (m.codigo && m.codigo.toLowerCase().includes(filtro)))
   );
-  const tbody = document.getElementById('tbody-modulos-disponibles');
-  if (!disponibles.length) { tbody.innerHTML = '<tr><td class="table-loading">Sin módulos disponibles</td></tr>'; return; }
-  tbody.innerHTML = disponibles.sort((a, b) => a.nombre.localeCompare(b.nombre)).map(m => `
-    <tr>
-      <td>
-        <div style="font-size:13px">${m.nombre}</div>
-        ${m.codigo ? `<span style="font-size:11px;font-family:var(--font-mono);color:var(--text-muted)">${m.codigo}</span>` : ''}
-      </td>
-      <td style="width:50px;text-align:right">
-        <button class="btn btn-primary btn-sm" onclick="anadirModulo(${m.id})">+</button>
-      </td>
-    </tr>`).join('');
+  const container = document.getElementById('lista-modulos-disponibles');
+  if (!disponibles.length) { 
+    container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:14px">No hay módulos disponibles</div>'; 
+    return; 
+  }
+  container.innerHTML = disponibles
+    .sort((a, b) => a.nombre.localeCompare(b.nombre))
+    .map(m => `
+      <div style="padding:12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:12px;transition:background 0.1s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:500;color:#0f172a;font-size:13px">${m.nombre}</div>
+          ${m.codigo ? `<div style="font-size:11px;font-family:monospace;color:#64748b;margin-top:2px">${m.codigo}</div>` : ''}
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="anadirModulo(${m.id})" style="flex-shrink:0">+ Agregar</button>
+      </div>`).join('');
 }
 
-document.getElementById('buscar-modulo-disponible').addEventListener('input', function () {
-  renderModulosDisponibles(this.value.toLowerCase());
+document.addEventListener('input', function(e) {
+  if (e.target.id === 'buscar-disponibles') {
+    renderModulosDisponibles(e.target.value.toLowerCase());
+  }
 });
 
 async function anadirModulo(moduloId) {
@@ -227,8 +263,8 @@ async function anadirModulo(moduloId) {
     const data = await res.json();
     if (!res.ok) { showAlert(data.error || 'Error.', 'error', 'alert-modulos'); return; }
     await cargarModulosGrupo();
-    showAlert('Módulo añadido.', 'success', 'alert-modulos');
-  } catch (err) { showAlert('Error al añadir.', 'error', 'alert-modulos'); }
+    showAlert('Módulo agregado.', 'success', 'alert-modulos');
+  } catch (err) { showAlert('Error al agregar.', 'error', 'alert-modulos'); }
 }
 
 async function quitarModulo(moduloId) {
@@ -243,3 +279,12 @@ async function quitarModulo(moduloId) {
 }
 
 cargarGrupos();
+
+// Sincronización automática
+initSync('grupos', async (datosNuevos) => {
+  console.log('👥 Grupos actualizados desde otro dispositivo');
+  todosGrupos = datosNuevos;
+  aplicarFiltros();
+}, 5000);
+
+window.addEventListener('beforeunload', () => stopSync('grupos'));

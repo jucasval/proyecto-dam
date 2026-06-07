@@ -1,51 +1,34 @@
+<?php
+require_once __DIR__ . '/../../auth.php';
+$paginaActiva = 'cargos';
+$v = time();
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cargos — Dpto. Informática</title>
+  <title>Cargos — Dpto. Informatica</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/main.css?v=<?= $v ?>">
 </head>
 <body>
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-logo">
-        <span class="logo-icon">◈</span>
-        <div>
-          <div class="logo-title">Dpto. Informática</div>
-          <div class="logo-sub" id="curso-activo-label">Cargando...</div>
-        </div>
-      </div>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section-label">Gestión</div>
-      <a href="../index.html"     class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
-      <a href="profesores.html"   class="nav-item"><span class="nav-icon">◎</span> Profesores</a>
-      <a href="grupos.html"       class="nav-item"><span class="nav-icon">◧</span> Grupos</a>
-      <a href="modulos.html"      class="nav-item"><span class="nav-icon">◫</span> Módulos</a>
-      <a href="asignaciones.html" class="nav-item"><span class="nav-icon">◈</span> Asignaciones</a>
-      <div class="nav-section-label" style="margin-top:12px">Administración</div>
-      <a href="cursos.html"       class="nav-item"><span class="nav-icon">◷</span> Cursos</a>
-      <a href="cargos.html"       class="nav-item active"><span class="nav-icon">◑</span> Cargos</a>
-    </nav>
-    <div class="sidebar-footer"><div class="sidebar-footer-text">TFC — DAM 2025</div></div>
-  </aside>
+<?php require_once __DIR__ . '/../includes/sidebar.php'; ?>
 
   <main class="main-content">
     <header class="topbar">
       <div class="topbar-left">
         <h1 class="page-title">Cargos</h1>
-        <span class="page-sub">Gestión de cargos y dedicaciones</span>
+        <span class="page-sub">Gestion de cargos y dedicaciones</span>
       </div>
+      <a href="../../logout.php" class="btn btn-secondary" style="font-size:12px">Salir</a>
     </header>
     <div class="content-area">
       <div id="alert-box" class="alert"></div>
-
       <div class="card">
         <div class="card-header">
-          <span class="card-title">Catálogo de cargos</span>
+          <span class="card-title">Catalogo de cargos</span>
           <button class="btn btn-primary" onclick="abrirModalCargo()">+ Nuevo cargo</button>
         </div>
         <div class="table-wrap">
@@ -63,7 +46,6 @@
           </table>
         </div>
       </div>
-
       <div class="card">
         <div class="card-header">
           <span class="card-title">Asignaciones del curso activo</span>
@@ -149,9 +131,10 @@
     </div>
   </div>
 
-  <script src="../js/api.js"></script>
-  <script src="../js/cargos.js"></script>
-  <script src="../js/hamburger.js"></script>
+  <script src="../js/api.js?v=<?= $v ?>"></script>
+  <script src="../js/sync.js?v=<?= $v ?>"></script>
+  <script src="../js/cargos.js?v=<?= $v ?>"></script>
+  <script src="../js/hamburger.js?v=<?= $v ?>"></script>
   <script>
     api.get('cursos/activo').then(c => {
       const el = document.getElementById('curso-activo-label');

@@ -7,7 +7,10 @@ const API_BASE = window.location.hostname === 'localhost'
 const api = {
   async get(recurso, id = null) {
     const url = id ? `${API_BASE}/${recurso}/${id}` : `${API_BASE}/${recurso}`;
-    const res = await fetch(url);
+    // Agregar timestamp para evitar caché
+    const separator = url.includes('?') ? '&' : '?';
+    const urlConBusting = `${url}${separator}t=${Date.now()}`;
+    const res = await fetch(urlConBusting);
     if (!res.ok) throw await res.json();
     return res.json();
   },

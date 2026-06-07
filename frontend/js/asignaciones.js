@@ -224,3 +224,17 @@ async function eliminarAsignacion(id) {
 }
 
 cargarDatos();
+
+// ============================================================
+// SINCRONIZACIÓN - Polling cada 5 segundos
+// ============================================================
+initSync('asignaciones', async (datosNuevos) => {
+  console.log('📊 Asignaciones actualizadas desde otro dispositivo');
+  todasAsignaciones = datosNuevos;
+  aplicarFiltros();
+}, 5000);
+
+// Detener sincronización si el usuario se va de la página
+window.addEventListener('beforeunload', () => {
+  stopSync('asignaciones');
+});

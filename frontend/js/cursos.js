@@ -68,20 +68,17 @@ async function abrirModalNuevo() {
 }
 
 function renderSelectorProfesores(lista) {
-  const tbody = document.getElementById('tbody-profesores-sel');
-  tbody.innerHTML = lista
+  const container = document.getElementById('check-profesores');
+  container.innerHTML = lista
     .sort((a, b) => a.apellidos.localeCompare(b.apellidos))
     .map(p => `
-      <tr>
-        <td><input type="checkbox" class="check-profesor" value="${p.id}" checked></td>
-        <td>${p.apellidos}, ${p.nombre}</td>
-        <td>${badgePuesto(p.puesto)}</td>
-      </tr>`).join('');
-
-  // Checkbox "Seleccionar todos"
-  document.getElementById('sel-todos').addEventListener('change', function () {
-    document.querySelectorAll('.check-profesor').forEach(cb => cb.checked = this.checked);
-  });
+      <label style="display:flex;align-items:center;gap:10px;padding:7px 8px;cursor:pointer;border-radius:4px;transition:background 0.1s"
+             onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+        <input type="checkbox" class="check-profesor" value="${p.id}" checked
+               style="flex-shrink:0;width:15px;height:15px;cursor:pointer;accent-color:#3b82f6">
+        <span style="font-size:13px;color:#0f172a">${p.apellidos}, ${p.nombre}</span>
+        <span style="font-size:11px;color:var(--text-secondary);margin-left:auto">${p.puesto}</span>
+      </label>`).join('');
 }
 
 function getProfesoresSeleccionados() {
@@ -145,3 +142,12 @@ async function eliminarCurso(id) {
 }
 
 cargarCursos();
+
+// Sincronización automática
+initSync('cursos', async (datosNuevos) => {
+  console.log('📚 Cursos actualizados desde otro dispositivo');
+  todosCursos = datosNuevos;
+  renderTabla(todosCursos);
+}, 5000);
+
+window.addEventListener('beforeunload', () => stopSync('cursos'));

@@ -55,6 +55,31 @@ class CursoController {
             ]);
             $nuevoCursoId = $this->db->lastInsertId();
 
+            // Copiar módulos del curso anterior
+            if ($cursoAnteriorId) {
+                $stmtModulos = $this->db->prepare(
+                    "SELECT nombre, codigo, horas_pes, horas_ptfp FROM modulo WHERE curso_id = ?"
+                );
+                $stmtModulos->execute([$cursoAnteriorId]);
+                $modulos = $stmtModulos->fetchAll();
+
+                if (!empty($modulos)) {
+                    $insertMod = $this->db->prepare(
+                        "INSERT INTO modulo (curso_id, nombre, codigo, horas_pes, horas_ptfp)
+                         VALUES (:curso_id, :nombre, :codigo, :horas_pes, :horas_ptfp)"
+                    );
+                    foreach ($modulos as $m) {
+                        $insertMod->execute([
+                            ':curso_id'    => $nuevoCursoId,
+                            ':nombre'      => $m['nombre'],
+                            ':codigo'      => $m['codigo'],
+                            ':horas_pes'   => $m['horas_pes'],
+                            ':horas_ptfp'  => $m['horas_ptfp'],
+                        ]);
+                    }
+                }
+            }
+
             // Copiar profesores seleccionados
             $profesoresIds = $data['profesores_ids'] ?? [];
             if (!empty($profesoresIds)) {
@@ -166,16 +191,31 @@ class CursoController {
     }
 
     public function destroy(int $id): void {
+        // ÚNICA CONDICIÓN: No se puede borrar si tiene asignaciones de módulos
         $check = $this->db->prepare("SELECT COUNT(*) FROM asignacion WHERE curso_id = ?");
         $check->execute([$id]);
         if ($check->fetchColumn() > 0) {
             http_response_code(409);
-            echo json_encode(['error' => 'No se puede eliminar: el curso tiene asignaciones']);
+            echo json_encode(['error' => 'No se puede eliminar: el curso tiene asignaciones de módulos']);
             return;
         }
-        $this->db->prepare("DELETE FROM profesor_cargo WHERE curso_id = ?")->execute([$id]);
-        $this->db->prepare("DELETE FROM profesor WHERE curso_id = ?")->execute([$id]);
-        $this->db->prepare("DELETE FROM curso_escolar WHERE id = ?")->execute([$id]);
-        echo json_encode(['mensaje' => 'Curso eliminado']);
+        
+        $this->db->beginTransaction();
+        try {
+            // Eliminar en orden correcto (respetando FKs)
+            $this->db->prepare("DELETE FROM asignacion WHERE curso_id = ?")->execute([$id]);
+            $this->db->prepare("DELETE FROM profesor_cargo WHERE curso_id = ?")->execute([$id]);
+            $this->db->prepare("DELETE FROM grupo_modulo WHERE modulo_id IN (SELECT id FROM modulo WHERE curso_id = ?)")->execute([$id]);
+            $this->db->prepare("DELETE FROM profesor WHERE curso_id = ?")->execute([$id]);
+            $this->db->prepare("DELETE FROM modulo WHERE curso_id = ?")->execute([$id]);
+            $this->db->prepare("DELETE FROM curso_escolar WHERE id = ?")->execute([$id]);
+            
+            $this->db->commit();
+            echo json_encode(['mensaje' => 'Curso eliminado']);
+        } catch (Exception $e) {
+            $this->db->rollBack();
+            http_response_code(500);
+            echo json_encode(['error' => 'Error al eliminar el curso: ' . $e->getMessage()]);
+        }
     }
 }

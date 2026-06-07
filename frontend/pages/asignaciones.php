@@ -1,51 +1,35 @@
+<?php
+require_once __DIR__ . '/../../auth.php';
+$paginaActiva = 'asignaciones';
+$v = time();
+?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Asignaciones — Dpto. Informática</title>
+  <title>Asignaciones — Dpto. Informatica</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/main.css?v=<?= $v ?>">
 </head>
 <body>
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <div class="sidebar-logo">
-        <span class="logo-icon">◈</span>
-        <div>
-          <div class="logo-title">Dpto. Informática</div>
-          <div class="logo-sub" id="curso-activo-label">Cargando...</div>
-        </div>
-      </div>
-    </div>
-    <nav class="sidebar-nav">
-      <div class="nav-section-label">Gestión</div>
-      <a href="../index.html"     class="nav-item"><span class="nav-icon">⊞</span> Dashboard</a>
-      <a href="profesores.html"   class="nav-item"><span class="nav-icon">◎</span> Profesores</a>
-      <a href="grupos.html"       class="nav-item"><span class="nav-icon">◧</span> Grupos</a>
-      <a href="modulos.html"      class="nav-item"><span class="nav-icon">◫</span> Módulos</a>
-      <a href="asignaciones.html" class="nav-item active"><span class="nav-icon">◈</span> Asignaciones</a>
-      <div class="nav-section-label" style="margin-top:12px">Administración</div>
-      <a href="cursos.html"       class="nav-item"><span class="nav-icon">◷</span> Cursos</a>
-      <a href="cargos.html"       class="nav-item"><span class="nav-icon">◑</span> Cargos</a>
-    </nav>
-    <div class="sidebar-footer"><div class="sidebar-footer-text">TFC — DAM 2025</div></div>
-  </aside>
+<?php require_once __DIR__ . '/../includes/sidebar.php'; ?>
 
   <main class="main-content">
     <header class="topbar">
       <div class="topbar-left">
         <h1 class="page-title">Asignaciones</h1>
-        <span class="page-sub">Asignación de módulos a profesores por grupo</span>
+        <span class="page-sub">Asignacion de modulos a profesores por grupo</span>
       </div>
+      <a href="../../logout.php" class="btn btn-secondary" style="font-size:12px">Salir</a>
     </header>
     <div class="content-area">
       <div id="alert-box" class="alert"></div>
       <div class="card">
         <div class="card-header">
           <div class="toolbar">
-            <input type="text" id="buscador" class="search-input" placeholder="Buscar profesor o módulo...">
+            <input type="text" id="buscador" class="search-input" placeholder="Buscar profesor o modulo...">
             <select id="filtro-grupo" class="search-input" style="width:180px">
               <option value="">Todos los grupos</option>
             </select>
@@ -60,7 +44,7 @@
               <option value="BTO">BTO</option>
             </select>
           </div>
-          <button class="btn btn-primary" onclick="abrirModalNuevo()">+ Nueva asignación</button>
+          <button class="btn btn-primary" onclick="abrirModalNuevo()">+ Nueva asignacion</button>
         </div>
         <div class="table-wrap">
           <table class="table">
@@ -68,7 +52,7 @@
               <tr>
                 <th>Profesor</th>
                 <th class="hide-tablet">Puesto</th>
-                <th>Módulo</th>
+                <th>Modulo</th>
                 <th class="hide-tablet">Grupo</th>
                 <th class="hide-mobile">Horas</th>
                 <th class="hide-tablet">Desdoble</th>
@@ -90,7 +74,7 @@
   <div class="modal-overlay" id="modal">
     <div class="modal">
       <div class="modal-header">
-        <span class="modal-title" id="modal-titulo">Nueva asignación</span>
+        <span class="modal-title" id="modal-titulo">Nueva asignacion</span>
         <button class="modal-close" onclick="closeModal()">✕</button>
       </div>
       <div class="modal-body">
@@ -103,7 +87,7 @@
             </select>
           </div>
           <div class="form-group full">
-            <label for="asig-modulo">2. Selecciona el módulo</label>
+            <label for="asig-modulo">2. Selecciona el modulo</label>
             <select id="asig-modulo" onchange="onModuloChange()" disabled>
               <option value="">— Primero elige un grupo —</option>
             </select>
@@ -111,7 +95,7 @@
           <div class="form-group full">
             <label for="asig-profesor">3. Selecciona el profesor</label>
             <select id="asig-profesor" onchange="onProfesorChange()" disabled>
-              <option value="">— Primero elige un módulo —</option>
+              <option value="">— Primero elige un modulo —</option>
             </select>
           </div>
           <div class="form-group">
@@ -120,10 +104,10 @@
               style="background:#f8fafc;color:var(--text-secondary)">
           </div>
           <div class="form-group">
-            <label for="asig-desdoble">¿Es desdoble?</label>
+            <label for="asig-desdoble">Es desdoble?</label>
             <select id="asig-desdoble">
               <option value="0">No</option>
-              <option value="1">Sí</option>
+              <option value="1">Si</option>
             </select>
           </div>
           <div class="form-group full">
@@ -140,9 +124,10 @@
     </div>
   </div>
 
-  <script src="../js/api.js"></script>
-  <script src="../js/asignaciones.js"></script>
-  <script src="../js/hamburger.js"></script>
+  <script src="../js/api.js?v=<?= $v ?>"></script>
+  <script src="../js/sync.js?v=<?= $v ?>"></script>
+  <script src="../js/asignaciones.js?v=<?= $v ?>"></script>
+  <script src="../js/hamburger.js?v=<?= $v ?>"></script>
   <script>
     api.get('cursos/activo').then(c => {
       const el = document.getElementById('curso-activo-label');

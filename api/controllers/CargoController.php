@@ -61,13 +61,25 @@ class CargoController {
 
     // DELETE /cargos/{id}
     public function destroy(int $id): void {
-        $check = $this->db->prepare("SELECT COUNT(*) FROM profesor_cargo WHERE cargo_id = ?");
-        $check->execute([$id]);
-        if ($check->fetchColumn() > 0) {
-            http_response_code(409);
-            echo json_encode(['error' => 'No se puede eliminar: el cargo tiene asignaciones activas']);
+        // Obtener curso activo
+        $cursoStmt = $this->db->query("SELECT id FROM curso_escolar WHERE activo = 1 LIMIT 1");
+        $cursoRow  = $cursoStmt->fetch();
+        if (!$cursoRow) {
+            http_response_code(500);
+            echo json_encode(['error' => 'No hay curso activo']);
             return;
         }
+        $cursoId = (int)$cursoRow['id'];
+        
+        // Verificar que el cargo no tiene asignaciones en el curso ACTIVO
+        $check = $this->db->prepare("SELECT COUNT(*) FROM profesor_cargo WHERE cargo_id = ? AND curso_id = ?");
+        $check->execute([$id, $cursoId]);
+        if ($check->fetchColumn() > 0) {
+            http_response_code(409);
+            echo json_encode(['error' => 'No se puede eliminar: el cargo tiene asignaciones en el curso activo']);
+            return;
+        }
+        
         $stmt = $this->db->prepare("DELETE FROM cargo WHERE id = ?");
         $stmt->execute([$id]);
         echo json_encode(['mensaje' => 'Cargo eliminado']);

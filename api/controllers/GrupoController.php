@@ -118,11 +118,22 @@ class GrupoController {
     }
 
     public function destroy(int $id): void {
-        $check = $this->db->prepare("SELECT COUNT(*) FROM asignacion WHERE grupo_id = ?");
-        $check->execute([$id]);
+        // Obtener curso activo
+        $cursoStmt = $this->db->query("SELECT id FROM curso_escolar WHERE activo = 1 LIMIT 1");
+        $cursoRow  = $cursoStmt->fetch();
+        if (!$cursoRow) {
+            http_response_code(500);
+            echo json_encode(['error' => 'No hay curso activo']);
+            return;
+        }
+        $cursoId = (int)$cursoRow['id'];
+        
+        // Verificar que no tiene asignaciones EN EL CURSO ACTIVO
+        $check = $this->db->prepare("SELECT COUNT(*) FROM asignacion WHERE grupo_id = ? AND curso_id = ?");
+        $check->execute([$id, $cursoId]);
         if ($check->fetchColumn() > 0) {
             http_response_code(409);
-            echo json_encode(['error' => 'No se puede eliminar: el grupo tiene asignaciones activas']);
+            echo json_encode(['error' => 'No se puede eliminar: el grupo tiene asignaciones en el curso activo']);
             return;
         }
         $this->db->prepare("DELETE FROM grupo_modulo WHERE grupo_id = ?")->execute([$id]);
@@ -169,13 +180,25 @@ class GrupoController {
 
     // DELETE /grupos/{id}/modulos/{modulo_id}
     public function removeModulo(int $grupoId, int $moduloId): void {
+        // Obtener curso activo
+        $cursoStmt = $this->db->query("SELECT id FROM curso_escolar WHERE activo = 1 LIMIT 1");
+        $cursoRow  = $cursoStmt->fetch();
+        if (!$cursoRow) {
+            http_response_code(500);
+            echo json_encode(['error' => 'No hay curso activo']);
+            return;
+        }
+        $cursoId = (int)$cursoRow['id'];
+        
+        // Verificar que no tiene asignaciones EN EL CURSO ACTIVO
         $check = $this->db->prepare(
-            "SELECT COUNT(*) FROM asignacion WHERE grupo_id = ? AND modulo_id = ?"
+            "SELECT COUNT(*) FROM asignacion 
+             WHERE grupo_id = ? AND modulo_id = ? AND curso_id = ?"
         );
-        $check->execute([$grupoId, $moduloId]);
+        $check->execute([$grupoId, $moduloId, $cursoId]);
         if ($check->fetchColumn() > 0) {
             http_response_code(409);
-            echo json_encode(['error' => 'No se puede quitar: hay asignaciones activas con este módulo en este grupo']);
+            echo json_encode(['error' => 'No se puede quitar: hay asignaciones activas con este módulo en este grupo en el curso activo']);
             return;
         }
         $stmt = $this->db->prepare(
